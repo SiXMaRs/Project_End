@@ -1,0 +1,134 @@
+- model: v-fit.product
+  fields:
+    name: "ดัมเบล 10 KG"
+    descriptions: "ดัมเบลคุณภาพสูง น้ำหนัก 10 กิโลกรัม"
+    category: "ดัมเบล"
+    price: 150
+    image: "products/21gWTc7L_Vofdn5l._AC_.jpg"
+    type: "มือสอง"
+
+- model: v-fit.product
+  fields:
+    name: "ดัมเบล 15 KG"
+    descriptions: "ดัมเบลสำหรับการออกกำลังกาย น้ำหนัก 15 กิโลกรัม"
+    category: "ดัมเบล"
+    price: 200
+    image: "products/dumbbell_15kg.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "ดัมเบล 20 KG"
+    descriptions: "ดัมเบลน้ำหนัก 20 กิโลกรัม เหมาะสำหรับผู้ฝึกยกน้ำหนัก"
+    category: "ดัมเบล"
+    price: 250
+    image: "products/dumbbell_20kg.jpg"
+    type: "มือสอง"
+
+- model: v-fit.product
+  fields:
+    name: "บาร์เบล 10 KG"
+    descriptions: "บาร์เบลน้ำหนักเบาสำหรับผู้เริ่มต้น"
+    category: "บาร์เบล"
+    price: 400
+    image: "products/barbell_10kg.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "บาร์เบล 15 KG"
+    descriptions: "บาร์เบลคุณภาพสูง เหมาะสำหรับทุกการฝึก"
+    category: "บาร์เบล"
+    price: 500
+    image: "products/barbell_15kg.jpg"
+    type: "มือสอง"
+
+- model: v-fit.product
+  fields:
+    name: "บาร์เบล 20 KG"
+    descriptions: "บาร์เบลสำหรับการยกน้ำหนักระดับสูง"
+    category: "บาร์เบล"
+    price: 600
+    image: "products/barbell_20kg.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "โฮมยิม รุ่น A"
+    descriptions: "โฮมยิมอเนกประสงค์ รุ่น A รองรับทุกการฝึก"
+    category: "โฮมยิม"
+    price: 15000
+    image: "products/homegym_a.jpg"
+    type: "มือสอง"
+
+- model: v-fit.product
+  fields:
+    name: "โฮมยิม รุ่น B"
+    descriptions: "โฮมยิมรุ่น B พร้อมอุปกรณ์ครบชุด"
+    category: "โฮมยิม"
+    price: 18000
+    image: "products/homegym_b.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "ดัมเบล 25 KG"
+    descriptions: "ดัมเบลขนาดใหญ่ เหมาะสำหรับผู้ฝึกขั้นสูง"
+    category: "ดัมเบล"
+    price: 300
+    image: "products/dumbbell_25kg.jpg"
+    type: "มือสอง"
+
+- model: v-fit.product
+  fields:
+    name: "ดัมเบล 30 KG"
+    descriptions: "ดัมเบลระดับโปร น้ำหนัก 30 กิโลกรัม"
+    category: "ดัมเบล"
+    price: 350
+    image: "products/dumbbell_30kg.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "บาร์เบล 25 KG"
+    descriptions: "บาร์เบลสำหรับการฝึกน้ำหนักขั้นสูง"
+    category: "บาร์เบล"
+    price: 700
+    image: "products/barbell_25kg.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "บาร์เบล 30 KG"
+    descriptions: "บาร์เบลระดับโปร น้ำหนัก 30 กิโลกรัม"
+    category: "บาร์เบล"
+    price: 800
+    image: "products/barbell_30kg.jpg"
+    type: "มือสอง"
+
+- model: v-fit.product
+  fields:
+    name: "โฮมยิม รุ่น C"
+    descriptions: "โฮมยิมรุ่น C มาพร้อมฟังก์ชันครบครัน"
+    category: "โฮมยิม"
+    price: 20000
+    image: "products/homegym_c.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "ดัมเบล 5 KG"
+    descriptions: "ดัมเบลน้ำหนักเบา สำหรับผู้เริ่มต้น"
+    category: "ดัมเบล"
+    price: 100
+    image: "products/dumbbell_5kg.jpg"
+    type: "เช่ายืม"
+
+- model: v-fit.product
+  fields:
+    name: "โฮมยิม รุ่น D"
+    descriptions: "โฮมยิมสำหรับผู้ที่ต้องการออกกำลังกายแบบครบวงจร"
+    category: "โฮมยิม"
+    price: 25000
+    image: "products/homegym_d.jpg"
+    type: "มือสอง"

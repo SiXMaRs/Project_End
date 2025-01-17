@@ -1,0 +1,13 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<nav class="flex fixed top-0 w-full  text-white px-4 h-20 items-center z-50 ">
+    <div class="flex items-center">
+        <a href="{% url 'main' %}" class="text-4xl text-white">V-FIT</a>
+    </div>
+    <div class="flex items-center space-x-6 ml-auto text-white">
+        <a href="{% url 'shop' %}" class="hover:text-yellow-400">ร้านค้า</a>
+        <a href="#" class="hover:text-yellow-400">ช่องทางติดต่อ</a>
+        <a href="{% url 'redirect_profile' %}" class="hover:text-yellow-400  flex items-center">
+            <span class="material-icons ">account_circle</span>
+        </a>
+    </div>
+</nav>

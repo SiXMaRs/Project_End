@@ -1,0 +1,65 @@
+<div class="w-1/4 p-6 flex flex-col items-center justify-between">
+    <div class="w-full flex flex-col items-center">
+        <!-- Profile Avatar Form -->
+        <form id="avatar-form" method="POST" enctype="multipart/form-data" style="display: none;">
+            {% csrf_token %}
+            <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;" onchange="document.getElementById('avatar-form').submit();">
+        </form>
+
+        <!-- Profile Avatar Display -->
+        <div class="relative">
+            {% if user.avatar %}
+            <img 
+                onclick="document.getElementById('avatar-input').click();" 
+                class="w-32 h-32 rounded-full border-2 mb-4 cursor-pointer object-cover" 
+                src="{{ user.avatar.url }}" 
+                alt="Avatar">
+            {% else %}
+            <img 
+                onclick="document.getElementById('avatar-input').click();" 
+                class="w-32 h-32 rounded-full border-2 mb-4 cursor-pointer object-cover" 
+                src="https://via.placeholder.com/150" 
+                alt="Default Avatar">
+            {% endif %}
+            <!-- Edit Icon -->
+            <span 
+                onclick="document.getElementById('avatar-input').click();" 
+                class="absolute bottom-2 right-2 bg-gray-300 text-black rounded-full w-10 h-10 flex items-center justify-center cursor-pointer border-2">
+                <i class="material-icons text-lg">edit</i>
+            </span>
+        </div>
+
+        <h2 class="text-2xl text-white">{{ user.full_name }}</h2>
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-8 w-full">
+            <ul>
+                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'profile' %}text-yellow-400{% else %}text-white{% endif %}">
+                    <a href="{% url 'profile' %}" class="flex items-center">
+                        <span class="material-icons mr-3">account_circle</span> บัญชีของฉัน
+                    </a>
+                </li>
+                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'user_rental' %}text-yellow-400{% else %}text-white{% endif %}">
+                    <a href="{% url 'user_rental' %}" class="flex items-center">
+                        <span class="material-icons mr-3">list_alt</span> รายการเช่ายืม
+                    </a>
+                </li>
+                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'user_buy' %}text-yellow-400{% else %}text-white{% endif %}">
+                    <a href="{% url 'user_buy' %}" class="flex items-center">
+                        <span class="material-icons mr-3">shopping_bag</span> ประวัติการซื้อ
+                    </a>
+                </li>
+                <li class="flex items-center py-3 px-4 text-xl text-white">
+                    <span class="material-icons mr-3">build</span> แจ้งซ่อม
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <div class="w-full mt-24">
+        <li class="flex items-center px-4 text-xl text-white">
+            <a href="{% url 'logout' %}">
+                <span class="material-icons mr-3">logout</span> ออกจากระบบ
+            </a>
+        </li>
+    </div>
+</div>

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class=" text-gray-100 font-poppins min-h-screen pt-20">
+    <div class="flex">
+        <!-- Sidebar -->
+        {% include 'user/menu.html' %}
+        <!-- Main Content -->
+            <div class="bg-white w-3/4 p-8 ml-6 mb-6 mr-8 mt-8">
+            <!-- Tabs -->
+                <div class="flex justify-start mb-6 -mt-8 -mr-8 -ml-8">
+                    <div id="tab-history" onclick="showTab('history')" class="w-1/2 bg-black bg-opacity-50 py-4 px-4 shadow-md border-b-2 border-yellow-400 text-yellow-500 text-xl text-center cursor-pointer">
+                        ประวัติ
+                    </div>
+                    <div id="tab-address" onclick="showTab('address')" class="w-1/2 text-xl bg-gray-500 py-4 px-4 shadow-md text-yellow-600 hover:bg-gray-300 hover:text-yellow-500 text-center cursor-pointer">
+                        ที่อยู่
+                    </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="content-history" class="tab-content">
+                <p class="text-xl text-black mb-4">ข้อมูลของฉัน:</p>
+                <div class="mx-auto max-w-lg">
+                    <form method="POST" class="space-y-4">
+                        {% csrf_token %}
+                        <!-- Full Name -->
+                        <div class="flex items-center justify-between">
+                            <label for="full_name" class="text-black w-1/3 text-right pr-4">ชื่อผู้ใช้:</label>
+                            <input type="text" id="full_name" name="full_name" value="{{ user.full_name }}"
+                                class="w-2/3 px-4 py-2 text-black border-black border-2">
+                        </div>
+                        <!-- Email -->
+                        <div class="flex items-center justify-between">
+                            <label for="email" class="text-black w-1/3 text-right pr-4">อีเมล:</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}"
+                                class="w-2/3 px-4 py-2 text-black border-black border-2">
+                        </div>
+                        <!-- Phone -->
+                        <div class="flex items-center justify-between">
+                            <label for="tel_number" class="text-black w-1/3 text-right pr-4">หมายเลขโทรศัพท์:</label>
+                            <input type="tel" id="tel_number" name="tel_number" value="{{ user.tel_number }}"
+                                class="w-2/3 px-4 py-2 text-black border-black border-2">
+                        </div>
+                        <!-- Sex -->
+                        <div class="flex items-center justify-between">
+                            <label class="text-black w-1/3 text-right pr-4">เพศ:</label>
+                            <div class="w-2/3 flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="sex" value="M" {% if user.sex == 'M' %}checked{% endif %}
+                                        class="form-radio text-yellow-400">
+                                    <span class="ml-2 text-black">ชาย</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="sex" value="F" {% if user.sex == 'F' %}checked{% endif %}
+                                        class="form-radio text-yellow-400">
+                                    <span class="ml-2 text-black">หญิง</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Submit Button -->
+                        <div class="flex justify-center">
+                            <button type="submit"
+                                class="px-6 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 focus:outline-none">
+                                บันทึก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="content-address" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-2 border-b-2 border-gray-200 pb-2">
+                    <p class="text-xl text-black">ที่อยู่ของฉัน</p>
+                    <button type="button" onclick="openPopup()" class="flex items-center px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 focus:outline-none">
+                        <span class="material-icons mr-2">add</span>
+                        เพิ่มที่อยู่
+                    </button>
+                </div>
+                <div class="border-b-2 border-gray-300 pt-4">
+                    <p class="text-black ">ที่อยู่</p>
+                    <div class="mt-6">
+                        <p class="text-black text-bold ">{{ user.full_name }}</p>
+                        <p class="text-black text-bold ">{{ user.tel_number }}</p>
+                        <p class="text-black">{{ user.address }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Popup Modal -->
+            <div id="popup-address" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6 w-1/2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl text-black">ที่อยู่ใหม่</h2>
+                        <button onclick="closePopup()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <!-- แสดงชื่อผู้ใช้ -->
+                        <div>
+                            <p class="block text-bold text-xl text-black">{{ user.full_name }}</p>
+                        </div>
+            
+                        <!-- แสดงหมายเลขโทรศัพท์ -->
+                        <div>
+                            <p class="block text-bold text-black">{{ user.tel_number }}</p>
+                        </div>
+            
+                        <!-- ฟิลด์กรอกที่อยู่ใหม่ -->
+                        <div class="mt-4">
+                            <label for="new_address_line1" class="block text-black text-bold">บ้านเลขที่, ซอย, หมู่, ถนน, แขวง/ตำบล</label>
+                            <input type="text" id="new_address_line1" name="new_address_line1" 
+                                class="w-full px-4 py-2 text-black border rounded-md focus:outline-none" placeholder="กรอกที่อยู่ใหม่">
+                        </div>
+            
+                        <!-- ปุ่มสำหรับบันทึกหรือยกเลิก -->
+                        <div class="flex justify-end space-x-4 mt-6">
+                            <button type="button" onclick="closePopup()" class="px-6 py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" class="px-6 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500">
+                                ยืนยัน
+                            </button>
+                        </div>
+                    </form>
+                </div>
+</div>           
+<script>
+    function showTab(tab) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+        // Reset all tab styles
+        document.querySelectorAll('#tab-history, #tab-address').forEach(tabItem => tabItem.classList.remove('border-b-4', 'bg-opacity-50'));
+        // Show the selected tab
+        document.getElementById(`content-${tab}`).classList.remove('hidden');
+        document.getElementById(`tab-${tab}`).classList.add('border-b-4', 'border-yellow-400', 'text-yellow-500','bg-opacity-50');
+    }
+    function openPopup() {
+        document.getElementById('popup-address').classList.remove('hidden');
+    }
+
+    function closePopup() {
+        document.getElementById('popup-address').classList.add('hidden');
+    }
+</script>
+{% endblock %}

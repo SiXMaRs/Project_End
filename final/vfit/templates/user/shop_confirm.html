@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="min-h-screen bg-black flex flex-col items-center pt-16">
+    <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-8">
+
+        <h1 class="text-xl font-bold mb-6">จองซื้อสินค้า</h1>
+        <div class="overflow-hidden">
+            <table class="w-full border-b-2">
+                <thead>
+                    <tr class="text-left">
+                        <th class="p-4">สินค้า</th>
+                        <th class="p-4 text-right">ราคาต่อหน่วย</th>
+                        <th class="p-4 text-right">จำนวน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="p-4 flex items-center">
+                            <img src="{{ product.image.url }}" class="w-12 h-12 mr-4 rounded" alt="Product Image">
+                            <span>{{ product.name }}</span>
+                        </td>
+                        <td class="p-4 text-right">{{ product.price|intcomma }} บาท</td>
+                        <td class="p-4 text-right">{{ quantity }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="text-right text-lg font-bold text-yellow-500 mt-4">
+            ค่าสั่งจองทั้งหมด ({{ quantity }} ชิ้น): {{ total_price }} บาท
+        </div>
+    </div>
+
+    <!-- Section: ยอดเงินและปุ่มซื้อ -->
+    <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-8 mt-6">
+        <div class="flex justify-end items-center gap-9">
+            <!-- ข้อมูลวันที่รับสินค้าและยอดชำระ -->
+            <div class="text-right">
+                <p class="text-lg">วันที่รับสินค้า: <span class="font-semibold">{{ pickup_date }}</span></p>
+                <p class="text-lg">ยอดชำระทั้งหมด: <span class="font-semibold text-yellow-500">{{ total_price }} บาท</span></p>
+            </div>
+            
+            <!-- ปุ่มซื้อ -->
+            <button id="buy-button" class="bg-yellow-400 text-black px-6 py-2 rounded-lg hover:bg-yellow-500 font-bold">ซื้อสินค้า</button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.getElementById('buy-button').addEventListener('click', function () {
+    const quantity = parseInt('{{ quantity|default:"0" }}', 10);
+    const pickupDate = '{{ pickup_date|default:"" }}';
+
+    if (isNaN(quantity) || quantity <= 0) {
+        alert('จำนวนสินค้าต้องมากกว่า 0');
+        return;
+    }
+    if (!pickupDate) {
+        alert('กรุณาเลือกวันที่รับสินค้า');
+        return;
+    }
+
+    // ยืนยันการสั่งซื้อก่อนส่งคำสั่ง
+    const isConfirmed = confirm(`คุณต้องการซื้อสินค้า "{{ product.name }}" จำนวน {{ quantity }} ชิ้น ใช่หรือไม่?`);
+    if (!isConfirmed) {
+        return; // ยกเลิกการทำงานหากผู้ใช้กด "Cancel"
+    }
+
+    // สร้างข้อมูลที่จะส่งไปยัง backend
+    const data = {
+        product_id: parseInt('{{ product.id|default:"0" }}', 10),
+        amount: quantity,
+        total_price: parseFloat('{{ total_price|default:"0" }}'),
+        user_id: parseInt('{{ user.id|default:"0" }}', 10),
+        pickup_date: pickupDate
+    };
+
+    console.log("Data being sent:", data); // Debug ข้อมูลใน Console
+
+    // ปิดปุ่มชั่วคราวเพื่อป้องกันการกดซ้ำ
+    const buyButton = document.getElementById('buy-button');
+    buyButton.disabled = true;
+
+    // ส่งคำสั่งซื้อไปยัง backend
+    fetch('/create-order/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Order created successfully!');
+            window.location.href = data.redirect_url; // Redirect ไปยัง shop
+        } else {
+            alert('Failed to create order: ' + data.message);
+            buyButton.disabled = false; // เปิดปุ่มอีกครั้งเมื่อเกิดข้อผิดพลาด
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert('เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ');
+        buyButton.disabled = false; // เปิดปุ่มอีกครั้งเมื่อเกิดข้อผิดพลาด
+    });
+});
+</script>
+{% endblock %}

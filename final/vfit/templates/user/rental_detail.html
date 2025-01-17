@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="min-h-screen bg-black flex items-start justify-center pt-20">
+    <div class="bg-white rounded-lg shadow-lg max-w-6xl w-full flex overflow-hidden">
+        <div class="w-1/2 p-8">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-auto border-2 rounded-lg">
+        </div>
+
+        <div class="w-1/2 p-8">
+            <h1 class="text-3xl mb-14 font-bold text-gray-900">{{ product.name }}</h1>
+            <p class="text-lg text-gray-600 mt-2">{{ product.descriptions }}</p>
+            <p class="text-2xl text-red-500 font-semibold mt-4">ราคาต่อวัน: {{ product.price|intcomma }} บาท</p>
+
+            <form method="POST" action="{% url 'rental_detail' product.id %}" id="rental-form">
+                {% csrf_token %}
+                <div class="mt-6 mb-8">
+                    <p class="text-gray-700 mb-2">ระยะเวลาการเช่า:</p>
+                    <div class="flex flex-wrap gap-4 mt-4">
+                        <button type="button" class="rental-btn px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500" data-duration="7">1 สัปดาห์</button>
+                        <button type="button" class="rental-btn px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500" data-duration="14">2 สัปดาห์</button>
+                        <button type="button" class="rental-btn px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500" data-duration="21">3 สัปดาห์</button>
+                        <button type="button" class="rental-btn px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500" data-duration="30">1 เดือน</button>
+                        <button type="button" class="rental-btn px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500" data-duration="90">3 เดือน</button>
+                        <button type="button" class="rental-btn px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500" data-duration="180">6 เดือน</button>
+                    </div>
+                    <input type="hidden" name="rental_duration" id="hidden-rental-duration" required>
+                </div>
+
+                <div class="mb-8">
+                    <label for="pickup-date" class="text-lg font-semibold block mb-2">วันที่ที่รับสินค้า:</label>
+                    <input type="date" name="pickup_date" id="pickup-date" 
+                           class="w-full border rounded-lg p-3 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
+                </div>
+
+                <div id="price-preview" class="mb-8 hidden">
+                    <p class="text-xl font-semibold">ราคารวม: <span id="total-price">0</span> บาท</p>
+                    <p class="text-gray-600">วันคืนสินค้า: <span id="return-date">-</span></p>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-yellow-400 text-black px-6 py-2 rounded-lg text-md font-bold hover:bg-yellow-500">
+                        ดำเนินการต่อ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const rentalButtons = document.querySelectorAll('.rental-btn');
+    const hiddenRentalDuration = document.getElementById('hidden-rental-duration');
+    const pickupDateInput = document.getElementById('pickup-date');
+    const pricePreview = document.getElementById('price-preview');
+    const totalPriceElement = document.getElementById('total-price');
+    const returnDateElement = document.getElementById('return-date');
+   
+
+    // Set minimum date
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    pickupDateInput.setAttribute('min', `${yyyy}-${mm}-${dd}`);
+
+    function updatePricePreview() {
+        const duration = parseInt(hiddenRentalDuration.value) || 0;
+        const pickupDate = pickupDateInput.value;
+
+        if (duration && pickupDate) {
+            const total = basePrice * duration;
+            const returnDate = new Date(pickupDate);
+            returnDate.setDate(returnDate.getDate() + duration);
+
+            totalPriceElement.textContent = total.toLocaleString();
+            returnDateElement.textContent = returnDate.toLocaleDateString('th-TH');
+            pricePreview.classList.remove('hidden');
+        }
+    }
+
+    rentalButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const duration = button.getAttribute('data-duration');
+            hiddenRentalDuration.value = duration;
+
+            rentalButtons.forEach(btn => {
+                btn.classList.remove('bg-white', 'text-black', 'border', 'border-black');
+                btn.classList.add('bg-yellow-400', 'hover:bg-yellow-500');
+            });
+            
+            button.classList.remove('bg-yellow-400', 'hover:bg-yellow-500');
+            button.classList.add('bg-white', 'text-black', 'border', 'border-black');
+
+            updatePricePreview();
+        });
+    });
+
+    pickupDateInput.addEventListener('change', updatePricePreview);
+});
+</script>
+{% endblock %}

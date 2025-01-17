@@ -1,0 +1,8 @@
+django
+pillow
+django-tailwind
+mysqlclient
+pymysql
+pyyaml
+django-cron
+celery

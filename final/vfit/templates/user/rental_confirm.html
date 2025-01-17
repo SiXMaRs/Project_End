@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    
+    <main class="flex-grow flex justify-center items-start pt-8">
+        <div class="rounded-lg shadow-lg max-w-4xl w-full p-6">
+
+            <div class="bg-white border-b mb-8 border-gray-300 pb-4">
+                <h2 class="text-lg font-semibold text-gray-800">ที่อยู่ผู้เช่า:</h2>
+                <p class="text-sm text-gray-600 font-semibold">{{ user.full_name }} {{ user.tel_number }}</p>
+                <p class="text-sm text-gray-600">{{ user.address }}</p>
+            </div>
+
+            <div class="mb-6 border-b bg-white border-gray-300 pb-4">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">ยืนยันการเช่าสินค้า</h1>
+                <div class="flex items-center border-b ">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-24 h-24 border rounded-lg">
+                    <div class="ml-4">
+                        <h3 class="text-lg text-gray-900">{{ product.name }}</h3>
+                        <p class="text-sm text-gray-600">จำนวน: {{ rental_record.quantity }}</p>
+                        <p class="text-sm text-gray-600">ราคาต่อหน่วย: {{ product.price|intcomma }} บาท</p>
+                        <br> <br> 
+                       
+                    </div>
+                </div>
+                <br><br><br>
+                <p class="flex text-sm justify-end text-gray-600">คำสั่งจองทั้งหมด({{ rental_record.quantity }} ชิ้น): {{ product.price|intcomma }} บาท</p>
+            </div>
+
+            <div class="mb-6 bg-white">
+                <h2 class="text-lg font-semibold text-gray-800">รายละเอียดการเช่า:</h2>
+                <p class="text-sm text-gray-600">วันที่รับสินค้า: {{ rental_record.pickup_date }}</p>
+                <p class="text-sm text-gray-600">ระยะเวลาการเช่า: {{ rental_record.rental_duration }} วัน</p>
+                <p class="text-sm text-gray-600">วันที่คืนสินค้า: {{ rental_record.return_date }}</p>
+
+                <h2 class="text-lg font-semibold text-gray-800 mt-4">ยอดชำระ:</h2>
+                <p class="text-2xl text-red-500 font-bold">{{ rental_record.total_price|intcomma }} บาท</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500">
+                        ยืนยันการเช่า
+                    </button>
+                </form>
+            </div>
+            
+        </div>
+    </main>
+</div>
+{% endblock %}

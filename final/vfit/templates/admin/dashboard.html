@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="bg-gray-800 text-gray-100 font-poppins min-h-screen pt-20">
+    <div class="flex">
+        <!-- Sidebar -->
+        {% include 'admin/nav.html' %}
+        <!-- Main Content -->
+        <div class=" text-black w-3/4 p-4 ml-80 mb-6  mt-8 ">
+            <!-- Today's Summary -->
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                    <p class="flex text-lg justify-start">รายได้รวม:</p>
+                    <p class="text-2xl text-black font-semibold">1,900 ฿</p>
+                </div>
+                <div class="bg-blue-500 p-4 rounded-lg shadow-md text-center">
+                    <p class="text-lg">รายได้จากการซื้อ</p>
+                    <p class="text-2xl text-white font-semibold">1,380 ฿</p>
+                </div>
+                <div class="bg-green-500 p-4 rounded-lg shadow-md text-center">
+                    <p class="text-lg">รายได้จากการเช่า</p>
+                    <p class="text-2xl text-white font-semibold">520 ฿</p>
+                </div>
+            </div>
+
+            <!-- Statistics Summary -->
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                    <p class="text-lg">รายการเช่ายืม</p>
+                    <p class="text-3xl text-blue-500 font-semibold">7</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                    <p class="text-lg">รายการซื้อ</p>
+                    <p class="text-3xl text-green-500 font-semibold">5</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                    <p class="text-lg">รายการแจ้งซ่อม</p>
+                    <p class="text-3xl text-red-500 font-semibold">5</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-2 gap-8">
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <p class="text-lg mb-4">กราฟสรุปรายได้</p>
+                    <canvas id="incomeChart" class="w-full h-64"></canvas>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <p class="text-lg mb-4">กราฟสรุปรายการเช่า-ซื้อ</p>
+                    <canvas id="orderChart" class="w-full h-64"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Example charts using Chart.js
+    const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+    const incomeChart = new Chart(incomeCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            datasets: [
+                {
+                    label: 'ซื้อ',
+                    data: [12000, 15000, 14000, 17000, 20000, 18000, 19000],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                },
+                {
+                    label: 'เช่า',
+                    data: [5000, 7000, 6000, 8000, 9000, 8500, 7500],
+                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                },
+            ],
+        },
+    });
+
+    const orderCtx = document.getElementById('orderChart').getContext('2d');
+    const orderChart = new Chart(orderCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+            datasets: [
+                {
+                    label: 'ซื้อ',
+                    data: [300, 500, 400, 600, 700],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                },
+                {
+                    label: 'เช่า',
+                    data: [200, 300, 250, 350, 450],
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    fill: false,
+                },
+            ],
+        },
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="bg-gray-800 text-gray-100 font-poppins min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="fixed h-full pt-20">
+        {% include 'admin/nav.html' %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="w-3/4 ml-80 pt-20 px-8">
+        <!-- Section: สถิติยอดรวม -->
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div class="bg-white text-black rounded-lg shadow-lg p-6 text-center">
+                <h2 class="text-2xl mb-2">รายการซื้อทั้งหมด:</h2>
+                <p class="text-3xl">{{ total_orders }} ชิ้น</p>
+            </div>
+            <div class="bg-yellow-500 text-black rounded-lg shadow-lg p-6 text-center">
+                <h2 class="text-2xl mb-2">อุปกรณ์ที่ต้องมารับ:</h2>
+                <p class="text-3xl">{{ pending_items }} ชิ้น</p>
+            </div>
+        </div>
+
+        <!-- Section: ตารางข้อมูลการซื้อสินค้า -->
+        <div class="">
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-lg ">รายการซื้อทั้งหมด :</p>
+                <div class="flex space-x-4">
+                    <button class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
+                        <span class="material-icons mr-2">filter_list</span>
+                        ฟิลเตอร์
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="text-white">
+                            <th class="p-3 text-center">รหัสอุปกรณ์</th>
+                            <th class="p-3 text-center">สินค้า</th>
+                            <th class="p-3 text-center">รูปสินค้า</th>
+                            <th class="p-3 text-center">ราคา</th>
+                            <th class="p-3 text-center">ประเภท</th>
+                            <th class="p-3 text-center">จำนวน</th>
+                            <th class="p-3 text-center">ผู้ซื้อ</th>
+                            <th class="p-3 text-center">วันที่ซื้อ</th>
+                            <th class="p-3 text-center">วันที่มารับ</th>
+                            <th class="p-3 text-center">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in page_obj %}
+                        <tr class="border-b border-white hover:bg-gray-800">
+                            <td class="p-3 text-center">{{ order.order_code }}</td>
+                            <td class="p-3 text-center">{{ order.product.name }}</td>
+                            <td class="p-3 text-center">
+                                <img src="{{ order.product.image.url }}" alt="Product Image" class="w-12 h-12 mx-auto rounded">
+                            </td>
+                            <td class="p-3 text-center">{{ order.product.price|intcomma }} บาท</td>
+                            <td class="p-3 text-center">{{ order.product.type }}</td>
+                            <td class="p-3 text-center">{{ order.amount }} ชิ้น</td>
+                            <td class="p-3 text-center">{{ order.user.full_name }}</td>
+                            <td class="p-3 text-center">{{ order.buy_date|date:"d/m/y" }}</td>
+                            <td class="p-3 text-center">{{ order.get_date|date:"d/m/y" }}</td>
+                            <td class="p-3 text-center">
+                                {% if order.is_received %}
+                                    <span class="text-green-500 font-bold">มารับแล้ว</span>
+                                {% else %}
+                                    <div class="flex gap-2 justify-center">
+                                        <a href="{% url 'received' order.order_code %}" 
+                                           class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
+                                            มารับแล้ว
+                                        </a>
+                                        <a href="{% url 'not_received' order.order_code %}" 
+                                           class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                                            ไม่มารับ
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="p-4 text-center text-gray-400">ยังไม่มีรายการสั่งซื้อ</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ปุ่มเลื่อนหน้า -->
+        <div class="mt-4 flex justify-center">
+            <nav class="inline-flex">
+                {% if page_obj.has_previous %}
+                    <!-- หน้าแรก -->
+                    <a href="?page=1" class="px-3 py-2 bg-gray-700 text-white rounded-l hover:bg-gray-600">
+                        <span class="material-icons">first_page</span>
+                    </a>
+                    <!-- ก่อนหน้า -->
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                        <span class="material-icons">chevron_left</span>
+                    </a>
+                {% endif %}
+
+                <!-- เลขหน้าปัจจุบัน -->
+                <span class="px-3 py-2 bg-gray-800 text-white">
+                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <!-- ถัดไป -->
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                        <span class="material-icons">chevron_right</span>
+                    </a>
+                    <!-- หน้าสุดท้าย -->
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 bg-gray-700 text-white rounded-r hover:bg-gray-600">
+                        <span class="material-icons">last_page</span>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
