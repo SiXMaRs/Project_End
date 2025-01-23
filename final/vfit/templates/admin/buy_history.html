@@ -57,7 +57,7 @@
                                 <img src="{{ order.product.image.url }}" alt="Product Image" class="w-12 h-12 mx-auto rounded">
                             </td>
                             <td class="p-3 text-center">{{ order.product.price|intcomma }} บาท</td>
-                            <td class="p-3 text-center">{{ order.product.type }}</td>
+                            <td class="p-3 text-center">{{ order.product.category }}</td>
                             <td class="p-3 text-center">{{ order.amount }} ชิ้น</td>
                             <td class="p-3 text-center">{{ order.user.full_name }}</td>
                             <td class="p-3 text-center">{{ order.buy_date|date:"d/m/y" }}</td>

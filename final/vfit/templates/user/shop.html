@@ -5,6 +5,11 @@
     <!-- Sidebar -->
     <div class="w-64 bg-gray-800 fixed top-20 left-0 h-[calc(100vh-5rem)] z-20">
         <nav class="flex flex-col space-y-4 px-4 mt-4">
+            <a href="?category=ทั้งหมด" 
+                class="flex items-center p-3 rounded-lg {% if not current_category or current_category == 'ทั้งหมด' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
+                <span class="material-icons mr-3">list</span>
+                ทั้งหมด
+            </a>
             <a href="?category=ดัมเบล" 
                class="flex items-center p-3 rounded-lg {% if current_category == 'ดัมเบล' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
                 <span class="material-icons mr-3">fitness_center</span>
@@ -22,10 +27,9 @@
             </a>
         </nav>
     </div>
-    
 
     <!-- Main Content -->
-    <div class="flex-1 ml-64">
+    <div class="flex-1 mt-20 ml-64">
         <!-- Header -->
         <div class="sticky z-30 px-6 py-4 shadow-md">
             <div class="flex items-center justify-between">
@@ -128,3 +132,4 @@
     }
 </script>
 {% endblock %}
+

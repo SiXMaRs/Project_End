@@ -44,68 +44,90 @@
             <button id="buy-button" class="bg-yellow-400 text-black px-6 py-2 rounded-lg hover:bg-yellow-500 font-bold">ซื้อสินค้า</button>
         </div>
     </div>
+
+    <!-- Popup Modal -->
+    <div id="confirmation-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-1/3">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">คุณต้องการซื้อสินค้าชิ้นนี้ใช่หรือไม่?</h2>
+            <div class="flex justify-around mt-6">
+                <button id="confirm-button" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-bold">ใช่</button>
+                <button id="cancel-button" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 font-bold">ไม่ใช่</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- JavaScript -->
 <script>
-document.getElementById('buy-button').addEventListener('click', function () {
-    const quantity = parseInt('{{ quantity|default:"0" }}', 10);
-    const pickupDate = '{{ pickup_date|default:"" }}';
-
-    if (isNaN(quantity) || quantity <= 0) {
-        alert('จำนวนสินค้าต้องมากกว่า 0');
-        return;
-    }
-    if (!pickupDate) {
-        alert('กรุณาเลือกวันที่รับสินค้า');
-        return;
-    }
-
-    // ยืนยันการสั่งซื้อก่อนส่งคำสั่ง
-    const isConfirmed = confirm(`คุณต้องการซื้อสินค้า "{{ product.name }}" จำนวน {{ quantity }} ชิ้น ใช่หรือไม่?`);
-    if (!isConfirmed) {
-        return; // ยกเลิกการทำงานหากผู้ใช้กด "Cancel"
-    }
-
-    // สร้างข้อมูลที่จะส่งไปยัง backend
-    const data = {
-        product_id: parseInt('{{ product.id|default:"0" }}', 10),
-        amount: quantity,
-        total_price: parseFloat('{{ total_price|default:"0" }}'),
-        user_id: parseInt('{{ user.id|default:"0" }}', 10),
-        pickup_date: pickupDate
-    };
-
-    console.log("Data being sent:", data); // Debug ข้อมูลใน Console
-
-    // ปิดปุ่มชั่วคราวเพื่อป้องกันการกดซ้ำ
     const buyButton = document.getElementById('buy-button');
-    buyButton.disabled = true;
+    const confirmationPopup = document.getElementById('confirmation-popup');
+    const confirmButton = document.getElementById('confirm-button');
+    const cancelButton = document.getElementById('cancel-button');
 
-    // ส่งคำสั่งซื้อไปยัง backend
-    fetch('/create-order/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert('Order created successfully!');
-            window.location.href = data.redirect_url; // Redirect ไปยัง shop
-        } else {
-            alert('Failed to create order: ' + data.message);
-            buyButton.disabled = false; // เปิดปุ่มอีกครั้งเมื่อเกิดข้อผิดพลาด
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert('เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ');
-        buyButton.disabled = false; // เปิดปุ่มอีกครั้งเมื่อเกิดข้อผิดพลาด
+    // Show popup when buy button is clicked
+    buyButton.addEventListener('click', () => {
+        confirmationPopup.classList.remove('hidden');
     });
-});
+
+    // Hide popup when cancel button is clicked
+    cancelButton.addEventListener('click', () => {
+        confirmationPopup.classList.add('hidden');
+    });
+
+    // Handle confirm button
+    confirmButton.addEventListener('click', () => {
+        const quantity = parseInt('{{ quantity|default:"0" }}', 10);
+        const pickupDate = '{{ pickup_date|default:"" }}';
+        
+        if (!pickupDate) {
+            alert('กรุณาเลือกวันที่รับสินค้า');
+            confirmationPopup.classList.add('hidden');
+            return;
+        }
+
+        // สร้างข้อมูลที่จะส่งไปยัง backend
+        const data = {
+            product_id: parseInt('{{ product.id|default:"0" }}', 10),
+            amount: quantity,
+            total_price: parseFloat('{{ total_price|default:"0" }}'),
+            user_id: parseInt('{{ user.id|default:"0" }}', 10),
+            pickup_date: pickupDate
+        };
+
+        // Disable buttons temporarily
+        confirmButton.disabled = true;
+        buyButton.disabled = true;
+
+        // ส่งคำสั่งซื้อไปยัง backend
+        fetch('/create-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Order created successfully!');
+                window.location.href = data.redirect_url; // Redirect ไปยัง shop
+            } else {
+                alert('Failed to create order: ' + data.message);
+                confirmButton.disabled = false;
+                buyButton.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert('เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ');
+            confirmButton.disabled = false;
+            buyButton.disabled = false;
+        });
+
+        // Hide popup
+        confirmationPopup.classList.add('hidden');
+    });
 </script>
+
 {% endblock %}

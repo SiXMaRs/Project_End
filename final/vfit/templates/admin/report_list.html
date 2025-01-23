@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex bg-gray-900 text-gray-100 h-screen">
+    <div class="mt-20">
+        {% include 'admin/nav.html' %}
+    </div>
+    
+
+    <div class="flex-1 mt-20 ml-64">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 gap-4 px-6 py-4">
+            <div class="bg-white text-black text-center py-4 rounded-lg">
+                <p class="text-lg">รายการแจ้งซ่อม:</p>
+                <p class="text-3xl">{{ in_progress_count }} ชิ้น</p>
+            </div>
+            <div class="bg-yellow-500 text-black text-center py-4 rounded-lg">
+                <p class="text-lg">อุปกรณ์ที่ซ่อมแล้ว:</p>
+                <p class="text-3xl">{{ completed_count }} ชิ้น</p>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="px-6 py-4 flex justify-between">
+            <h1 class="text-2xl">รายการอุปกรณ์ที่แจ้งซ่อมวันนี้:</h1>
+            <button class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
+                <span class="material-icons mr-2">filter_list</span>
+                ฟิลเตอร์
+            </button>
+        </div>
+
+        <!-- Report List Table -->
+        <div class="px-6 py-4">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-white border-b border-gray-700">
+                        <th class="p-4">รหัสอุปกรณ์</th>
+                        <th class="p-4">ชื่ออุปกรณ์</th>
+                        <th class="p-4">รูปอุปกรณ์</th>
+                        <th class="p-4">ประเภท</th>
+                        <th class="p-4">ผู้แจ้ง</th>
+                        <th class="p-4">วันที่แจ้ง</th>
+                        <th class="p-4">อาการ</th>
+                        <th class="p-4">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr class="border-b border-gray-700">
+                        <td class="p-4">{{ report.rental_code.order_code }}</td>
+                        <td class="p-4">{{ report.rental_code.product.name }}</td>
+                        <td class="p-4">
+                            <img src="{{ report.rental_code.product.image.url }}" class="w-12 h-12 rounded" alt="Product Image">
+                        </td>
+                        <td class="p-4">{{ report.rental_code.product.category }}</td>
+                        <td class="p-4">{{ report.rental_code.user.full_name }}</td>
+                        <td class="p-4">{{ report.report_date|date:"d/m/Y" }}</td>
+                        <td class="p-4">{{ report.issue_description }}</td>
+                        <td class="p-4">
+                            {% if report.status == 'in_progress' %}
+                                <form method="POST" class="inline-block">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="report_id" value="{{ report.id }}">
+                                    <input type="hidden" name="action" value="complete">
+                                    <button type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600">สำเร็จ</button>
+                                </form>
+                            {% else %}
+                                <span class="text-green-500">สำเร็จ</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-gray-500 py-8">
+                            <div class="flex flex-col items-center">
+                                <span class="material-icons text-7xl">report_problem</span>
+                                <p>ยังไม่มีการแจ้งซ่อม</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

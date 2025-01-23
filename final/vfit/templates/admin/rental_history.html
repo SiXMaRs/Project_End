@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="flex bg-gray-800 text-gray-100 h-screen">
+    <div class="mt-20">
+        {% include 'admin/nav.html' %}
+    </div>
+    
+    <!-- Main Content -->
+    <div class="flex-1 mt-20 ml-64">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-4 gap-4 px-6 py-4">
+            <div class="bg-yellow-500 text-black text-center py-4 rounded-lg">
+                <p class="text-lg ">อุปกรณ์ที่ถูกเช่าในขณะนี้:</p>
+                <p class="text-3xl ">{{ renting_count }} ชิ้น</p>
+            </div>
+            <div class="bg-white text-black text-center py-4 rounded-lg">
+                <p class="text-lg ">อุปกรณ์ที่ถูกจอง:</p>
+                <p class="text-3xl ">{{ pending_return_count }} ชิ้น</p>
+            </div>
+            <div class="bg-green-500 text-white text-center py-4 rounded-lg">
+                <p class="text-lg ">อุปกรณ์ที่คืนแล้ว:</p>
+                <p class="text-3xl ">{{ returned_count }} ชิ้น</p>
+            </div>
+            <div class="bg-red-500 text-white text-center py-4 rounded-lg">
+                <p class="text-lg ">อุปกรณ์ที่ส่งล่าช้า:</p>
+                <p class="text-3xl ">{{ overdue_count }} ชิ้น</p>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 ">
+            <h1 class="text-2xl ">รายการการเช่า</h1>
+        </div>
+
+        <!-- Rental Records Table -->
+        <div class="px-6 py-4">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="">
+                        <th class="p-4">รหัสอุปกรณ์</th>
+                        <th class="p-4">สินค้า</th>
+                        <th class="p-4">รูปสินค้า</th>
+                        <th class="p-4">ราคา</th>
+                        <th class="p-4">จำนวน</th>
+                        <th class="p-4">ผู้เช่า</th>
+                        <th class="p-4">ระยะเวลา</th>
+                        <th class="p-4">วันที่รับ</th>
+                        <th class="p-4">วันที่คืน</th>
+                        <th class="p-4">เวลาคงเหลือ</th>
+                        <th class="p-4">สถานะ</th>
+                        <th class="p-4"> </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in rental_records %}
+                    <tr class="border-b border-gray-700">
+                        <td class="p-3">{{ record.order_code }}</td>
+                        <td class="p-3">{{ record.product.name }}</td>
+                        <td class="p-3">
+                            <img src="{{ record.product.image.url }}" class="w-12 h-12 rounded" alt="Product Image">
+                        </td>
+                        <td class="p-3">{{ record.total_price|intcomma }} บาท</td>
+                        <td class="p-3">{{ record.amount }} ชิ้น</td>
+                        <td class="p-3">{{ record.user.full_name }}</td>
+                        <td class="p-3">{{ record.ren_time }} วัน</td>
+                        <td class="p-3">{{ record.get_date|date:"d/m/Y" }}</td>
+                        <td class="p-3">{{ record.return_date|date:"d/m/Y" }}</td>
+                        <td class="p-3">
+                            {% if record.time_remaining >= 0 %}
+                            <span class="text-green-500">{{ record.time_remaining }} วัน</span>
+                            {% else %}
+                            <span class="text-red-500">{{ record.overdue_time }} วัน</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3">
+                            {% if record.status == 'pending' %}
+                            <span class="text-gray-400">รอรับสินค้า</span>
+                            {% elif record.status == 'renting' %}
+                            <span class="text-yellow-500">กำลังเช่า</span>
+                            {% elif record.status == 'overdue' %}
+                            <span class="text-red-500">ส่งช้า</span>
+                            {% elif record.status == 'returned' %}
+                            <span class="text-green-500">คืนแล้ว</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3">
+                            <button type="submit" class="bg-yellow-400 text-black">คืนสินค้า</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

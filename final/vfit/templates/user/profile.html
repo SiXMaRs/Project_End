@@ -3,16 +3,13 @@
 {% block content %}
 <div class=" text-gray-100 font-poppins min-h-screen pt-20">
     <div class="flex">
-        <!-- Sidebar -->
         {% include 'user/menu.html' %}
-        <!-- Main Content -->
             <div class="bg-white w-3/4 p-8 ml-6 mb-6 mr-8 mt-8">
-            <!-- Tabs -->
                 <div class="flex justify-start mb-6 -mt-8 -mr-8 -ml-8">
-                    <div id="tab-history" onclick="showTab('history')" class="w-1/2 bg-black bg-opacity-50 py-4 px-4 shadow-md border-b-2 border-yellow-400 text-yellow-500 text-xl text-center cursor-pointer">
-                        ประวัติ
+                    <div id="tab-history" onclick="showTab('history')" class="w-1/2 bg-black bg-opacity-50 py-4 px-4 shadow-md border-b-2 border-r border-yellow-400 text-yellow-500 text-xl text-center cursor-pointer">
+                        ประวัติ 
                     </div>
-                    <div id="tab-address" onclick="showTab('address')" class="w-1/2 text-xl bg-gray-500 py-4 px-4 shadow-md text-yellow-600 hover:bg-gray-300 hover:text-yellow-500 text-center cursor-pointer">
+                    <div id="tab-address" onclick="showTab('address')" class="w-1/2 text-xl bg-black py-4 px-4 shadow-md text-yellow-400 border-b-2 border-l border-yellow-400  text-center cursor-pointer">
                         ที่อยู่
                     </div>
             </div>
@@ -23,25 +20,21 @@
                 <div class="mx-auto max-w-lg">
                     <form method="POST" class="space-y-4">
                         {% csrf_token %}
-                        <!-- Full Name -->
                         <div class="flex items-center justify-between">
                             <label for="full_name" class="text-black w-1/3 text-right pr-4">ชื่อผู้ใช้:</label>
                             <input type="text" id="full_name" name="full_name" value="{{ user.full_name }}"
                                 class="w-2/3 px-4 py-2 text-black border-black border-2">
                         </div>
-                        <!-- Email -->
                         <div class="flex items-center justify-between">
                             <label for="email" class="text-black w-1/3 text-right pr-4">อีเมล:</label>
                             <input type="email" id="email" name="email" value="{{ user.email }}"
                                 class="w-2/3 px-4 py-2 text-black border-black border-2">
                         </div>
-                        <!-- Phone -->
                         <div class="flex items-center justify-between">
                             <label for="tel_number" class="text-black w-1/3 text-right pr-4">หมายเลขโทรศัพท์:</label>
                             <input type="tel" id="tel_number" name="tel_number" value="{{ user.tel_number }}"
                                 class="w-2/3 px-4 py-2 text-black border-black border-2">
                         </div>
-                        <!-- Sex -->
                         <div class="flex items-center justify-between">
                             <label class="text-black w-1/3 text-right pr-4">เพศ:</label>
                             <div class="w-2/3 flex items-center space-x-4">
@@ -57,7 +50,6 @@
                                 </label>
                             </div>
                         </div>
-                        <!-- Submit Button -->
                         <div class="flex justify-center">
                             <button type="submit"
                                 class="px-6 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 focus:outline-none">
@@ -71,22 +63,36 @@
             <div id="content-address" class="tab-content hidden">
                 <div class="flex justify-between items-center mb-2 border-b-2 border-gray-200 pb-2">
                     <p class="text-xl text-black">ที่อยู่ของฉัน</p>
-                    <button type="button" onclick="openPopup()" class="flex items-center px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 focus:outline-none">
+                    <button type="button" onclick="openPopup()" 
+                            class="flex items-center px-4 py-2 rounded-md focus:outline-none {% if user.address %}bg-gray-300 text-gray-500 cursor-not-allowed{% else %}bg-yellow-400 text-black hover:bg-yellow-500{% endif %}" 
+                            {% if user.address %}disabled{% endif %}>
                         <span class="material-icons mr-2">add</span>
                         เพิ่มที่อยู่
                     </button>
                 </div>
-                <div class="border-b-2 border-gray-300 pt-4">
-                    <p class="text-black ">ที่อยู่</p>
-                    <div class="mt-6">
-                        <p class="text-black text-bold ">{{ user.full_name }}</p>
-                        <p class="text-black text-bold ">{{ user.tel_number }}</p>
+                {% if user.address %}
+                <div class="border-b-2 border-gray-300 pt-4 flex justify-between">
+                    <div class="mt-6 w-2/3">
+                        <p class="text-black">{{ user.full_name }}</p>
+                        <p class="text-black">{{ user.tel_number }}</p>
                         <p class="text-black">{{ user.address }}</p>
                     </div>
+                    <div class="mt-4 flex space-x-4 items-center">
+                        <a href="#" onclick="openEditPopup()" class="text-blue-400 hover:underline cursor-pointer">
+                            แก้ไข
+                        </a>
+                        <form method="POST" action="{% url 'delete_address' %}" onsubmit="return confirm('คุณต้องการลบที่อยู่นี้หรือไม่?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-400 hover:underline cursor-pointer bg-transparent border-none focus:outline-none">
+                                ลบ
+                            </button>
+                        </form>
+                    </div>
                 </div>
+                {% endif %}
             </div>
-            
-            <!-- Popup Modal -->
+
+            <!-- Popup -->
             <div id="popup-address" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
                 <div class="bg-white rounded-lg shadow-lg p-6 w-1/2">
                     <div class="flex justify-between items-center mb-4">
@@ -97,24 +103,17 @@
                     </div>
                     <form method="POST">
                         {% csrf_token %}
-                        <!-- แสดงชื่อผู้ใช้ -->
                         <div>
                             <p class="block text-bold text-xl text-black">{{ user.full_name }}</p>
                         </div>
-            
-                        <!-- แสดงหมายเลขโทรศัพท์ -->
                         <div>
                             <p class="block text-bold text-black">{{ user.tel_number }}</p>
                         </div>
-            
-                        <!-- ฟิลด์กรอกที่อยู่ใหม่ -->
                         <div class="mt-4">
                             <label for="new_address_line1" class="block text-black text-bold">บ้านเลขที่, ซอย, หมู่, ถนน, แขวง/ตำบล</label>
                             <input type="text" id="new_address_line1" name="new_address_line1" 
                                 class="w-full px-4 py-2 text-black border rounded-md focus:outline-none" placeholder="กรอกที่อยู่ใหม่">
                         </div>
-            
-                        <!-- ปุ่มสำหรับบันทึกหรือยกเลิก -->
                         <div class="flex justify-end space-x-4 mt-6">
                             <button type="button" onclick="closePopup()" class="px-6 py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300">
                                 ยกเลิก
@@ -125,7 +124,36 @@
                         </div>
                     </form>
                 </div>
-</div>           
+            </div>
+
+            <!-- Edit Popup -->
+            <div id="popup-edit-address" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+                <div class="bg-white rounded-lg shadow-lg p-6 w-1/2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl text-black">แก้ไขที่อยู่</h2>
+                        <button onclick="closeEditPopup()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                    <form method="POST" action="{% url 'edit_address' %}">
+                        {% csrf_token %}
+                        <div class="mt-4">
+                            <label for="edit_address_line1" class="block text-black text-bold">บ้านเลขที่, ซอย, หมู่, ถนน, แขวง/ตำบล</label>
+                            <input type="text" id="edit_address_line1" name="edit_address_line1" value="{{ user.address }}"
+                                class="w-full px-4 py-2 text-black border rounded-md focus:outline-none">
+                        </div>
+                        <div class="flex justify-end space-x-4 mt-6">
+                            <button type="button" onclick="closeEditPopup()" class="px-6 py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300">
+                                ยกเลิก
+                            </button>
+                            <button type="submit" class="px-6 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500">
+                                ยืนยัน
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
 <script>
     function showTab(tab) {
         // Hide all tab contents
@@ -142,6 +170,14 @@
 
     function closePopup() {
         document.getElementById('popup-address').classList.add('hidden');
+    }
+
+    function openEditPopup() {
+        document.getElementById('popup-edit-address').classList.remove('hidden');
+    }
+
+    function closeEditPopup() {
+        document.getElementById('popup-edit-address').classList.add('hidden');
     }
 </script>
 {% endblock %}

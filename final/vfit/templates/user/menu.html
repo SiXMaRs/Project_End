@@ -49,8 +49,10 @@
                         <span class="material-icons mr-3">shopping_bag</span> ประวัติการซื้อ
                     </a>
                 </li>
-                <li class="flex items-center py-3 px-4 text-xl text-white">
-                    <span class="material-icons mr-3">build</span> แจ้งซ่อม
+                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'report_issue' %}text-yellow-400{% else %}text-white{% endif %}">
+                    <a href="{% url 'report_issue' %}" class="flex items-center">
+                       <span class="material-icons mr-3">build</span> แจ้งซ่อม 
+                    </a>
                 </li>
             </ul>
         </nav>

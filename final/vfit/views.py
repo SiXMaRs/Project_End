@@ -6,11 +6,12 @@ from django.core.paginator import Paginator
 from celery import shared_task
 from datetime import datetime, timedelta
 from django.contrib import messages
+import random, string
 import json
 from .models import *
 from .forms import *
 
-
+# register&login
 def register(request):
     if request.method == 'POST':
         full_name = request.POST.get('full_name')
@@ -36,7 +37,6 @@ def register(request):
 
     return render(request, 'login_register.html')
 
-
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -58,31 +58,41 @@ def logout(request):
     request.session.flush() 
     return redirect('login')
 
+# mainpage
+def home_view(request):
+    return render(request, 'home.html')
 
 def main_view(request):
     if 'user_id' not in request.session:
-        return redirect('login')  # หากไม่ได้ Login ให้กลับไปหน้า Login
-
-    # ดึงข้อมูลผู้ใช้จาก session
+        return redirect('login') 
+    
     user_id = request.session['user_id']
     user = Users.objects.get(id=user_id)
 
     return render(request, 'main.html', {'user': user})
 
+def redirect_profile(request):
+    if 'user_id' in request.session: 
+        user = Users.objects.get(id=request.session['user_id'])
+        if user.is_superuser:
+            return redirect('dashboard')
+        else:
+            return redirect('profile')
+    else:
+        return redirect('login')
 
-def home_view(request):
-    return render(request, 'home.html')
 
+
+# user function
 def profile(request):
     if 'user_id' not in request.session:
         return redirect('login')  
 
-    # ดึงข้อมูลผู้ใช้จาก session
     user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
     except Users.DoesNotExist:
-        return redirect('login')  # หากไม่มีผู้ใช้ ให้กลับไปหน้า Login
+        return redirect('login') 
 
     if request.method == "POST":
         if 'avatar' in request.FILES:
@@ -102,6 +112,34 @@ def profile(request):
         return redirect('profile')  
 
     return render(request, 'user/profile.html', {'user': user})
+
+def delete_address(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    try:
+        user = Users.objects.get(id=request.session['user_id'])
+        user.address = ""
+        user.save()
+        return redirect('profile') 
+    except Users.DoesNotExist:
+        return redirect('login')
+
+def edit_address(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    try:
+        user = Users.objects.get(id=request.session['user_id'])
+        if request.method == "POST":
+            # อัปเดตที่อยู่
+            user.address = request.POST.get('edit_address_line1', user.address)
+            user.save()
+            return redirect('profile')  # กลับไปหน้าโปรไฟล์หลังแก้ไขที่อยู่
+    except Users.DoesNotExist:
+        return redirect('login')
+
+    return redirect('profile')
 
 
 def user_rental_history(request):
@@ -145,6 +183,61 @@ def user_buy_history(request):
     }
     return render(request, 'user/user_buy.html', context)
 
+
+def report_issue(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    user_id = request.session['user_id']
+    try:
+        user = Users.objects.get(id=user_id)
+    except Users.DoesNotExist:
+        return redirect('login')
+    
+    rental_records = RentalRecord.objects.filter(user_id=user_id)
+
+    if request.method == 'POST':
+        rental_code_id = request.POST.get('rental_code')
+        issue_description = request.POST.get('issue_description')
+
+        # ตรวจสอบข้อมูลที่ได้รับ
+        if not rental_code_id or not issue_description:
+            messages.error(request, 'กรุณากรอกข้อมูลให้ครบถ้วน')
+            return redirect('report_issue')
+
+        try:
+            # ใช้ order_code (primary key) ในการค้นหา
+            rental_record = RentalRecord.objects.get(order_code=rental_code_id)
+            
+            # สร้างรายงานและบันทึกลงดาต้าเบส
+            Report.objects.create(
+                rental_code=rental_record,
+                issue_description=issue_description,
+                status='in_progress'  # ค่าเริ่มต้น
+            )
+            messages.success(request, 'แจ้งปัญหาสำเร็จแล้ว')
+        except RentalRecord.DoesNotExist:
+            messages.error(request, 'ไม่พบข้อมูลการเช่า')
+            return redirect('report_issue')
+        except Exception as e:
+            messages.error(request, f'เกิดข้อผิดพลาด: {str(e)}')
+            return redirect('report_issue')
+
+        return redirect('report_issue')
+
+    # ดึงข้อมูลรายงานที่เกี่ยวข้องกับผู้ใช้งาน
+    reports = Report.objects.filter(rental_code__user_id=user_id)
+
+    context = {
+        'rental_records': rental_records,
+        'reports': reports,
+        'user': user,
+    }
+    return render(request, 'user/report.html', context)
+
+
+
+# admin function
 def dashboard(request):
     if 'user_id' not in request.session:
         return redirect('login')
@@ -152,8 +245,8 @@ def dashboard(request):
     user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
-        if not user.is_superuser:  # ตรวจสอบว่าเป็น superuser หรือไม่
-            return redirect('main')  # ถ้าไม่ใช่ superuser ให้กลับไปหน้า login
+        if not user.is_superuser: 
+            return redirect('main')
     except Users.DoesNotExist:
         return redirect('login')
 
@@ -164,14 +257,47 @@ def dashboard(request):
 
     return render(request, 'admin/dashboard.html', {'user': user})
 
+
+def admin_rental_list(request):
+    if 'user_id' not in request.session:
+        return redirect('login') 
+    
+    user_id = request.session['user_id']
+    try:
+        user = Users.objects.get(id=user_id)
+        if not user.is_superuser: 
+            return redirect('main')  
+    except Users.DoesNotExist:
+        return redirect('login')
+
+    # นับจำนวนตามสถานะ
+    renting_count = RentalRecord.objects.filter(status='renting').count()
+    pending_return_count = RentalRecord.objects.filter(status='pending').count()
+    returned_count = RentalRecord.objects.filter(status='returned').count()
+    overdue_count = RentalRecord.objects.filter(status='overdue').count()
+
+    # ดึงข้อมูลการเช่าทั้งหมด
+    rental_records = RentalRecord.objects.select_related('product', 'user').all()
+
+    context = {
+        'rental_records': rental_records,
+        'user': user,
+        'renting_count': renting_count,
+        'pending_return_count': pending_return_count,
+        'returned_count': returned_count,
+        'overdue_count': overdue_count,
+    }
+    return render(request, 'admin/rental_history.html', context)
+
+
 def buy_history(request):
     if 'user_id' not in request.session:
         return redirect('login')
     user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
-        if not user.is_superuser:  # ตรวจสอบว่าเป็น superuser หรือไม่
-            return redirect('main')  # ถ้าไม่ใช่ superuser ให้กลับไปหน้า login
+        if not user.is_superuser:  
+            return redirect('main')  
     except Users.DoesNotExist:
         return redirect('login')
     
@@ -182,18 +308,16 @@ def buy_history(request):
     
     orders = buy_record.objects.select_related('product', 'user').all()
 
-    # การแบ่งหน้า
     paginator = Paginator(orders, 6)  # กำหนดให้แสดง 6 รายการต่อหน้า
     page_number = request.GET.get('page')  # รับเลขหน้าจาก URL
     page_obj = paginator.get_page(page_number)  # ดึงรายการของหน้าที่เลือก
 
-    # สถิติต่าง ๆ
     total_orders = orders.count()
     pending_items = orders.filter(get_date__gte=now().date(), is_received=False).count()
     
     context = {
         'user': user,
-        'page_obj': page_obj,  # ส่ง page_obj ไปยัง template
+        'page_obj': page_obj, 
         'total_orders': total_orders,
         'pending_items': pending_items,
     }
@@ -215,15 +339,31 @@ def not_received(request, order_code):
     order.delete() 
     return redirect('buy_history')
 
-def redirect_profile(request):
-    if 'user_id' in request.session: 
-        user = Users.objects.get(id=request.session['user_id'])
-        if user.is_superuser:
-            return redirect('dashboard')
-        else:
-            return redirect('profile')
-    else:
+def report_list(request):
+    if 'user_id' not in request.session:
         return redirect('login')
+
+    user_id = request.session['user_id']
+    reports = Report.objects.all()
+
+    if request.method == 'POST':
+        report_id = request.POST.get('report_id')
+        action = request.POST.get('action')
+
+        report = get_object_or_404(Report, id=report_id)
+
+        if action == 'complete':
+            report.status = 'completed'
+            report.save()
+            messages.success(request, 'สถานะของการแจ้งซ่อมถูกเปลี่ยนเป็นสำเร็จแล้ว')
+
+    context = {
+        'reports': reports,
+        'in_progress_count': reports.filter(status='in_progress').count(),
+        'completed_count': reports.filter(status='completed').count(),
+    }
+    return render(request, 'admin/report_list.html', context)
+
 
 def add_product(request):
     if 'user_id' not in request.session:
@@ -261,7 +401,7 @@ def add_product(request):
 
     products = Product.objects.filter(is_available=True)
 
-    paginator = Paginator(products, 6) 
+    paginator = Paginator(products, 5) 
     page_number = request.GET.get('page')  # รับเลขหน้าปัจจุบันจาก URL
     page_obj = paginator.get_page(page_number)  # ดึงสินค้าของหน้าที่เลือก
 
@@ -303,18 +443,16 @@ def delete_product(request, product_id):
 
 
 
-
+# shop function
 def shop(request):
     if 'user_id' not in request.session:
         return redirect('login')
     
-    # รับค่าหมวดหมู่และชนิดสินค้า
     category = request.GET.get('category', None)
     product_type = request.GET.get('type', None)
 
-    # เริ่ม Query
     products = Product.objects.filter(is_available=True)
-    if category:
+    if category and category != 'ทั้งหมด':  
         products = products.filter(category=category)
     if product_type:
         products = products.filter(type=product_type)
@@ -325,6 +463,7 @@ def shop(request):
         'current_type': product_type,
     }
     return render(request, 'user/shop.html', context)
+
 
 def rental_detail(request, pk):
     if 'user_id' not in request.session:
@@ -381,10 +520,10 @@ def rental_confirm(request, pk):
         
         pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
         return_date_obj = pickup_date_obj + timedelta(days=rental_duration)
-        
+        order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         # Create new rental record
         rental = RentalRecord.objects.create(
-            order_code=f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            order_code=order_code,
             product=product,
             user_id=request.session['user_id'],
             total_price=total_price,
@@ -485,8 +624,6 @@ def create_order(request):
             # ตรวจสอบว่าสินค้าและผู้ใช้งานมีอยู่ในระบบหรือไม่
             product = get_object_or_404(Product, id=product_id)
             user = get_object_or_404(Users, id=user_id)
-
-            import random, string
             order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
             # บันทึกคำสั่งซื้อ

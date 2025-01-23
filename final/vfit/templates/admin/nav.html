@@ -43,8 +43,8 @@
                     </a>
                 </li>
                 <!-- รายการเช่ายืม -->
-                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'rental_list' %}text-yellow-400 text-black{% else %}text-gray-100{% endif %}">
-                    <a href="" class="flex items-center">
+                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'admin_rental_list' %}text-yellow-400 text-black{% else %}text-gray-100{% endif %}">
+                    <a href="{% url 'admin_rental_list' %}" class="flex items-center">
                         <span class="material-icons mr-3">list_alt</span> รายการเช่ายืม
                     </a>
                 </li>
@@ -61,9 +61,9 @@
                     </a>
                 </li>
                 <!-- รายการแจ้งซ่อม -->
-                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'repair_list' %}text-yellow-400 text-black{% else %}text-gray-100{% endif %}">
-                    <a href="" class="flex items-center">
-                        <span class="material-icons mr-3">build</span> รายการแจ้งซ่อม
+                <li class="flex items-center py-3 px-4 text-xl {% if request.resolver_match.url_name == 'report_list' %}text-yellow-400 text-black{% else %}text-gray-100{% endif %}">
+                    <a href="{% url 'report_list' %}" class="flex items-center">
+                        <span class="material-icons mr-3">build</span> รายการแจ้งปัญหา
                     </a>
                 </li>
             </ul>
