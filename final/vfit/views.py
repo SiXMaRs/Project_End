@@ -471,6 +471,13 @@ def rental_detail(request, pk):
     
     product = get_object_or_404(Product, pk=pk)
     
+    # ดึงข้อมูลการจองสินค้าที่มีสถานะ 'pending' หรือ 'renting'
+    rentals = RentalRecord.objects.filter(product=product, status__in=['pending', 'renting'])
+    unavailable_periods = [
+        {"start_date": rental.get_date.strftime('%Y-%m-%d'), "end_date": rental.return_date.strftime('%Y-%m-%d')}
+        for rental in rentals
+    ]
+
     if request.method == 'POST':
         rental_duration = request.POST.get('rental_duration')
         pickup_date = request.POST.get('pickup_date')
@@ -499,7 +506,10 @@ def rental_detail(request, pk):
             messages.error(request, 'รูปแบบวันที่ไม่ถูกต้อง')
             return redirect('rental_detail', pk=pk)
     
-    return render(request, 'user/rental_detail.html', {'product': product})
+    return render(request, 'user/rental_detail.html', {
+        'product': product,
+        'unavailable_periods': unavailable_periods,  # ส่งช่วงวันที่ไม่ว่างไปยัง template
+    })
 
 def rental_confirm(request, pk):
     if 'user_id' not in request.session:

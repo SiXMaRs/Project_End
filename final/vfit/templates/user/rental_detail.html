@@ -29,7 +29,7 @@
 
                 <div class="mb-8">
                     <label for="pickup-date" class="text-lg font-semibold block mb-2">วันที่ที่รับสินค้า:</label>
-                    <input type="date" name="pickup_date" id="pickup-date" 
+                    <input type="date" name="pickup_date" id="pickup-date"  placeholder="mm/dd/yyyy"
                            class="w-full border rounded-lg p-3 text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400" required>
                 </div>
 
@@ -56,30 +56,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const pricePreview = document.getElementById('price-preview');
     const totalPriceElement = document.getElementById('total-price');
     const returnDateElement = document.getElementById('return-date');
-   
 
-    // Set minimum date
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    pickupDateInput.setAttribute('min', `${yyyy}-${mm}-${dd}`);
+    // ข้อมูลช่วงวันที่ไม่ว่าง (ดึงมาจาก backend)
+    const unavailablePeriods = {{ unavailable_periods|safe }};
+    const unavailableDates = [];
+    const bufferDays = 5; // จำนวนวันกันชนสำหรับการซ่อมบำรุง
 
+    // แปลงข้อมูลช่วงวันที่ไม่ว่างเป็น Array
+    unavailablePeriods.forEach(period => {
+        let startDate = new Date(period.start_date);
+        const endDate = new Date(period.end_date);
+
+        while (startDate <= endDate) {
+            unavailableDates.push(startDate.toISOString().split('T')[0]); // YYYY-MM-DD
+            startDate.setDate(startDate.getDate() + 1);
+        }
+
+        // เพิ่ม buffer days หลังจากวันคืนสินค้า
+        let bufferStartDate = new Date(endDate);
+        for (let i = 0; i < bufferDays; i++) {
+            bufferStartDate.setDate(bufferStartDate.getDate() + 1);
+            unavailableDates.push(bufferStartDate.toISOString().split('T')[0]);
+        }
+    });
+
+    // ใช้ Flatpickr เพื่อปิดวันที่ในปฏิทิน
+    flatpickr("#pickup-date", {
+        minDate: "today", // กำหนดวันเริ่มต้นเป็นวันนี้
+        disable: unavailableDates, // ปิดวันที่ที่ไม่ว่าง
+        dateFormat: "Y-m-d", // รูปแบบวันที่ (ปี-เดือน-วัน)
+        onChange: function(selectedDates, dateStr, instance) {
+            // เมื่อผู้ใช้เลือกวันที่
+            updateRentalButtons(dateStr); // ตรวจสอบปุ่มระยะเวลาการเช่า
+            updatePricePreview(); // อัปเดตราคา
+        }
+    });
+
+    // ฟังก์ชันตรวจสอบและอัปเดตปุ่มระยะเวลาการเช่า
+    function updateRentalButtons(pickupDate) {
+    const pickupDateObj = new Date(pickupDate);
+
+    rentalButtons.forEach(button => {
+        const duration = parseInt(button.getAttribute('data-duration')); // ดึงระยะเวลาเช่าจากปุ่ม
+        const returnDate = new Date(pickupDateObj); // คำนวณวันคืนสินค้า
+        returnDate.setDate(returnDate.getDate() + duration);
+
+        // เพิ่ม buffer days หลังวันคืนสินค้า
+        const bufferEndDate = new Date(returnDate);
+        bufferEndDate.setDate(bufferEndDate.getDate() + bufferDays);
+
+        // ตรวจสอบว่าช่วงวันที่เช่าทับซ้อนกับวันที่ไม่ว่างหรือไม่
+        const isConflict = unavailableDates.some(date => {
+            const unavailableDate = new Date(date);
+            return (
+                (unavailableDate >= pickupDateObj && unavailableDate <= returnDate) || // ช่วงเวลาเช่า
+                (unavailableDate > returnDate && unavailableDate <= bufferEndDate)    // ช่วง buffer days
+            );
+        });
+
+        if (isConflict) {
+            button.setAttribute('disabled', 'true'); // ปิดการใช้งานปุ่ม
+            button.classList.add('bg-gray-300', 'cursor-not-allowed'); // เพิ่มสไตล์ปุ่มที่ปิด
+            button.classList.remove('hover:bg-yellow-500', 'bg-yellow-400');
+        } else {
+            button.removeAttribute('disabled'); // เปิดใช้งานปุ่ม
+            button.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            button.classList.add('hover:bg-yellow-500', 'bg-yellow-400');
+        }
+    });
+}
+
+
+    // ฟังก์ชันสำหรับอัปเดตราคาและวันที่คืนสินค้า
     function updatePricePreview() {
-        const duration = parseInt(hiddenRentalDuration.value) || 0;
+        const duration = parseInt(hiddenRentalDuration.value) || 0; // ระยะเวลาการเช่า (วัน)
         const pickupDate = pickupDateInput.value;
 
         if (duration && pickupDate) {
-            const total = basePrice * duration;
-            const returnDate = new Date(pickupDate);
-            returnDate.setDate(returnDate.getDate() + duration);
+            const weeks = duration / 7; // แปลงวันเป็นจำนวนสัปดาห์
+            const basePrice = {{ product.price }}; // ราคาต่อสัปดาห์
+            const total = Math.round(basePrice * weeks); // คำนวณราคาทั้งหมดและปัดเศษ
 
-            totalPriceElement.textContent = total.toLocaleString();
-            returnDateElement.textContent = returnDate.toLocaleDateString('th-TH');
+            const returnDate = new Date(pickupDate);
+            returnDate.setDate(returnDate.getDate() + duration); // คำนวณวันคืนสินค้า
+
+            // แสดงผลรวมราคาและวันที่คืนสินค้า
+            totalPriceElement.textContent = total.toLocaleString(); // แสดงราคาทั้งหมด (ไม่มีจุดทศนิยม)
+            returnDateElement.textContent = returnDate.toLocaleDateString('th-TH'); // แสดงวันที่คืนสินค้า
             pricePreview.classList.remove('hidden');
         }
     }
 
+    // เมื่อคลิกปุ่มระยะเวลาการเช่า
     rentalButtons.forEach(button => {
         button.addEventListener('click', () => {
             const duration = button.getAttribute('data-duration');
@@ -89,15 +157,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.remove('bg-white', 'text-black', 'border', 'border-black');
                 btn.classList.add('bg-yellow-400', 'hover:bg-yellow-500');
             });
-            
+
             button.classList.remove('bg-yellow-400', 'hover:bg-yellow-500');
             button.classList.add('bg-white', 'text-black', 'border', 'border-black');
 
             updatePricePreview();
         });
     });
-
-    pickupDateInput.addEventListener('change', updatePricePreview);
 });
+
+
 </script>
 {% endblock %}
