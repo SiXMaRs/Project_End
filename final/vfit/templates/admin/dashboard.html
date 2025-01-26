@@ -1,52 +1,52 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="bg-gray-800 text-gray-100 font-poppins min-h-screen pt-20">
+<div class="text-gray-100 font-poppins min-h-screen pt-20">
     <div class="flex">
         <!-- Sidebar -->
         {% include 'admin/nav.html' %}
         <!-- Main Content -->
-        <div class=" text-black w-3/4 p-4 ml-80 mb-6  mt-8 ">
+        <div class="text-black w-3/4 p-4 ml-80 mb-6 mt-8">
             <!-- Today's Summary -->
             <div class="grid grid-cols-3 gap-4 mb-8">
                 <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                    <p class="flex text-lg justify-start">รายได้รวม:</p>
-                    <p class="text-2xl text-black font-semibold">1,900 ฿</p>
+                    <p class=" text-gray-700">รายได้รวม:</p>
+                    <p class="text-2xl text-black ">{{ total_income|intcomma }} ฿</p>
                 </div>
                 <div class="bg-blue-500 p-4 rounded-lg shadow-md text-center">
-                    <p class="text-lg">รายได้จากการซื้อ</p>
-                    <p class="text-2xl text-white font-semibold">1,380 ฿</p>
+                    <p class=" text-white">รายได้จากการซื้อ</p>
+                    <p class="text-2xl text-white ">{{ buy_income|intcomma }} ฿</p>
                 </div>
                 <div class="bg-green-500 p-4 rounded-lg shadow-md text-center">
-                    <p class="text-lg">รายได้จากการเช่า</p>
-                    <p class="text-2xl text-white font-semibold">520 ฿</p>
+                    <p class=" text-white">รายได้จากการเช่า</p>
+                    <p class="text-2xl text-white ">{{ rental_income|intcomma }} ฿</p>
                 </div>
             </div>
 
             <!-- Statistics Summary -->
             <div class="grid grid-cols-3 gap-4 mb-8">
                 <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                    <p class="text-lg">รายการเช่ายืม</p>
-                    <p class="text-3xl text-blue-500 font-semibold">7</p>
+                    <p class="text-lg text-gray-700">รายการเช่ายืม</p>
+                    <p class="text-3xl text-blue-500 ">{{ total_rentals }}</p>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                    <p class="text-lg">รายการซื้อ</p>
-                    <p class="text-3xl text-green-500 font-semibold">5</p>
+                    <p class="text-lg text-gray-700">รายการซื้อ</p>
+                    <p class="text-3xl text-green-500 ">{{ total_buys }}</p>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                    <p class="text-lg">รายการแจ้งซ่อม</p>
-                    <p class="text-3xl text-red-500 font-semibold">5</p>
+                    <p class="text-lg text-gray-700">รายการแจ้งซ่อม</p>
+                    <p class="text-3xl text-red-500 ">{{ total_reports }}</p>
                 </div>
             </div>
 
             <!-- Charts -->
             <div class="grid grid-cols-2 gap-8">
                 <div class="bg-white p-4 rounded-lg shadow-md">
-                    <p class="text-lg mb-4">กราฟสรุปรายได้</p>
+                    <p class="text-lg mb-4 text-gray-700">กราฟสรุปรายได้</p>
                     <canvas id="incomeChart" class="w-full h-64"></canvas>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow-md">
-                    <p class="text-lg mb-4">กราฟสรุปรายการเช่า-ซื้อ</p>
+                    <p class="text-lg mb-4 text-gray-700">กราฟสรุปรายการเช่า-ซื้อ</p>
                     <canvas id="orderChart" class="w-full h-64"></canvas>
                 </div>
             </div>

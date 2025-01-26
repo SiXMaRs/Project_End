@@ -5,7 +5,9 @@ from django.utils.timezone import now
 from django.core.paginator import Paginator
 from celery import shared_task
 from datetime import datetime, timedelta
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.db.models import Sum, Q
 import random, string
 import json
 from .models import *
@@ -250,12 +252,33 @@ def dashboard(request):
     except Users.DoesNotExist:
         return redirect('login')
 
-    if request.method == "POST" and 'avatar' in request.FILES:
-        user.avatar = request.FILES['avatar']
-        user.save()
-        return redirect('dashboard')
+    # คำนวณรายได้รวมจากการเช่า (เฉพาะสถานะ 'renting' และ 'returned')
+    rental_income = RentalRecord.objects.filter(
+        Q(status='renting') | Q(status='returned')
+    ).aggregate(total=Sum('total_price'))['total'] or 0
 
-    return render(request, 'admin/dashboard.html', {'user': user})
+    # คำนวณรายได้รวมจากการซื้อ (เฉพาะที่มารับสินค้าแล้ว)
+    buy_income = buy_record.objects.filter(is_received=True).aggregate(total=Sum('total_price'))['total'] or 0
+
+    # รวมรายได้ทั้งหมด
+    total_income = rental_income + buy_income
+
+    # นับจำนวนรายการ
+    total_rentals = RentalRecord.objects.count()
+    total_buys = buy_record.objects.count()
+    total_reports = Report.objects.count()
+
+    context = {
+        'user': user,
+        'total_income': total_income,
+        'rental_income': rental_income,
+        'buy_income': buy_income,
+        'total_rentals': total_rentals,
+        'total_buys': total_buys,
+        'total_reports': total_reports,
+    }
+
+    return render(request, 'admin/dashboard.html', context)
 
 
 def admin_rental_list(request):
@@ -270,6 +293,21 @@ def admin_rental_list(request):
     except Users.DoesNotExist:
         return redirect('login')
 
+    if request.method == 'POST':
+        # ตรวจสอบคำขอคืนสินค้า
+        order_code = request.POST.get('order_code')
+        if order_code:
+            try:
+                rental_record = RentalRecord.objects.get(order_code=order_code)
+                rental_record.status = 'returned'  # เปลี่ยนสถานะเป็นคืนสินค้าแล้ว
+                rental_record.time_remaining = 0  # หยุดการนับเวลาคงเหลือ
+                rental_record.overdue_time = 0  # หยุดการนับเวลาเกิน
+                rental_record.save()
+                messages.success(request, f'รายการ {order_code} ถูกคืนแล้ว')
+            except RentalRecord.DoesNotExist:
+                messages.error(request, f'ไม่พบรายการ {order_code}')
+        return redirect('admin_rental_list')
+
     # นับจำนวนตามสถานะ
     renting_count = RentalRecord.objects.filter(status='renting').count()
     pending_return_count = RentalRecord.objects.filter(status='pending').count()
@@ -279,8 +317,13 @@ def admin_rental_list(request):
     # ดึงข้อมูลการเช่าทั้งหมด
     rental_records = RentalRecord.objects.select_related('product', 'user').all()
 
+    # แบ่งหน้า
+    paginator = Paginator(rental_records, 5)  # แสดง 5 รายการต่อหน้า
+    page_number = request.GET.get('page')  # รับหมายเลขหน้าจาก query parameter
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'rental_records': rental_records,
+        'page_obj': page_obj,  # ส่ง object หน้าปัจจุบันไปยัง template
         'user': user,
         'renting_count': renting_count,
         'pending_return_count': pending_return_count,
@@ -344,6 +387,13 @@ def report_list(request):
         return redirect('login')
 
     user_id = request.session['user_id']
+    try:
+        user = Users.objects.get(id=user_id)
+        if not user.is_superuser:  
+            return redirect('main')  
+    except Users.DoesNotExist:
+        return redirect('login')
+    
     reports = Report.objects.all()
 
     if request.method == 'POST':
@@ -358,6 +408,7 @@ def report_list(request):
             messages.success(request, 'สถานะของการแจ้งซ่อมถูกเปลี่ยนเป็นสำเร็จแล้ว')
 
     context = {
+        'user': user,
         'reports': reports,
         'in_progress_count': reports.filter(status='in_progress').count(),
         'completed_count': reports.filter(status='completed').count(),
@@ -514,20 +565,26 @@ def rental_detail(request, pk):
 def rental_confirm(request, pk):
     if 'user_id' not in request.session:
         return redirect('login')
-    
+
+    user_id = request.session['user_id']
+    try:
+        user = Users.objects.get(id=user_id)  # ดึงข้อมูลผู้ใช้
+    except Users.DoesNotExist:
+        return redirect('login')
+
     rental_info = request.session.get('rental_info')
     if not rental_info:
         return redirect('rental_detail', pk=pk)
-    
+
     product = get_object_or_404(Product, pk=rental_info['product_id'])
     rental_duration = int(rental_info['rental_duration'])
     pickup_date = rental_info['pickup_date']
-    
+
     if request.method == 'POST':
         quantity = 1
-        # Calculate total price based on duration and daily rate
-        total_price = product.price * rental_duration
-        
+        # Calculate total price based on duration and weekly rate
+        total_price = (product.price * rental_duration) / 7  # คำนวณราคาแบบรายสัปดาห์
+
         pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
         return_date_obj = pickup_date_obj + timedelta(days=rental_duration)
         order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
@@ -535,7 +592,7 @@ def rental_confirm(request, pk):
         rental = RentalRecord.objects.create(
             order_code=order_code,
             product=product,
-            user_id=request.session['user_id'],
+            user_id=user_id,
             total_price=total_price,
             amount=quantity,
             ren_time=rental_duration,
@@ -543,22 +600,22 @@ def rental_confirm(request, pk):
             return_date=return_date_obj.strftime('%Y-%m-%d'),
             status="pending"  # Set initial status as pending until pickup date
         )
-        
+
         # Initialize the time status
         rental.update_time_status()
-        
+
         # Clear the session data
         del request.session['rental_info']
-        
+
         # Redirect to success page or shop
         messages.success(request, 'การเช่าสำเร็จ')
         return redirect('shop')
-    
+
     # Calculate return date and total price for preview
     pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
     return_date_obj = pickup_date_obj + timedelta(days=rental_duration)
-    total_price = product.price * rental_duration
-    
+    total_price = (product.price * rental_duration) / 7  # คำนวณราคาแบบรายสัปดาห์
+
     # Prepare rental record data for template
     preview_data = {
         'quantity': 1,
@@ -567,12 +624,67 @@ def rental_confirm(request, pk):
         'return_date': return_date_obj.strftime('%Y-%m-%d'),
         'total_price': total_price,
     }
-    
+
     return render(request, 'user/rental_confirm.html', {
         'product': product,
-        'rental_record': preview_data
+        'rental_record': preview_data,
+        'user': user  # ส่งข้อมูลผู้ใช้ไปยังเทมเพลต
     })
 
+@csrf_exempt
+def save_address(request):
+    # ตรวจสอบว่าผู้ใช้ล็อกอินหรือไม่ผ่าน session
+    if 'user_id' not in request.session:
+        return JsonResponse({'status': 'error', 'message': 'กรุณาเข้าสู่ระบบ'}, status=401)
+
+    if request.method == 'POST':
+        try:
+            user_id = request.session['user_id']
+            data = json.loads(request.body)
+            address = data.get('address')
+
+            if not address:
+                return JsonResponse({'status': 'error', 'message': 'กรุณากรอกข้อมูลให้ครบถ้วน'}, status=400)
+
+            user = Users.objects.get(id=user_id)
+            user.address = address
+            user.save()
+
+            return JsonResponse({'status': 'success', 'message': 'ที่อยู่ถูกบันทึกเรียบร้อยแล้ว!'})
+        except Users.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'ไม่พบข้อมูลผู้ใช้'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'เกิดข้อผิดพลาด: {str(e)}'}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+def shop_delete_address(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    try:
+        user = Users.objects.get(id=request.session['user_id'])
+        user.address = ""
+        user.save()
+        return redirect('rental_confirm') 
+    except Users.DoesNotExist:
+        return redirect('login')
+
+def shop_edit_address(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    try:
+        user = Users.objects.get(id=request.session['user_id'])
+        if request.method == "POST":
+            # อัปเดตที่อยู่
+            user.address = request.POST.get('edit_address_line1', user.address)
+            user.save()
+            return redirect('rental_confirm')  
+    except Users.DoesNotExist:
+        return redirect('login')
+
+    return redirect('rental_confirm')
 
 @shared_task
 def update_rental_records():

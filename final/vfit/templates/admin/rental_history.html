@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="flex bg-gray-800 text-gray-100 h-screen">
+<div class="flex h-screen">
     <div class="mt-20">
         {% include 'admin/nav.html' %}
     </div>
@@ -11,49 +11,49 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-4 gap-4 px-6 py-4">
             <div class="bg-yellow-500 text-black text-center py-4 rounded-lg">
-                <p class="text-lg ">อุปกรณ์ที่ถูกเช่าในขณะนี้:</p>
-                <p class="text-3xl ">{{ renting_count }} ชิ้น</p>
+                <p class="text-lg">อุปกรณ์ที่ถูกเช่าในขณะนี้:</p>
+                <p class="text-3xl">{{ renting_count }} ชิ้น</p>
             </div>
             <div class="bg-white text-black text-center py-4 rounded-lg">
-                <p class="text-lg ">อุปกรณ์ที่ถูกจอง:</p>
-                <p class="text-3xl ">{{ pending_return_count }} ชิ้น</p>
+                <p class="text-lg">อุปกรณ์ที่ถูกจอง:</p>
+                <p class="text-3xl">{{ pending_return_count }} ชิ้น</p>
             </div>
             <div class="bg-green-500 text-white text-center py-4 rounded-lg">
-                <p class="text-lg ">อุปกรณ์ที่คืนแล้ว:</p>
-                <p class="text-3xl ">{{ returned_count }} ชิ้น</p>
+                <p class="text-lg">อุปกรณ์ที่คืนแล้ว:</p>
+                <p class="text-3xl">{{ returned_count }} ชิ้น</p>
             </div>
             <div class="bg-red-500 text-white text-center py-4 rounded-lg">
-                <p class="text-lg ">อุปกรณ์ที่ส่งล่าช้า:</p>
-                <p class="text-3xl ">{{ overdue_count }} ชิ้น</p>
+                <p class="text-lg">อุปกรณ์ที่ส่งล่าช้า:</p>
+                <p class="text-3xl">{{ overdue_count }} ชิ้น</p>
             </div>
         </div>
 
-        <div class="px-6 py-4 ">
-            <h1 class="text-2xl ">รายการการเช่า</h1>
+        <div class="px-6 py-1 mb-2">
+            <h1 class="text-white text-2xl">รายการการเช่า</h1>
         </div>
 
         <!-- Rental Records Table -->
-        <div class="px-6 py-4">
-            <table class="w-full text-left border-collapse">
+        <div class="px-6">
+            <table class="w-full text-sm border-collapse">
                 <thead>
-                    <tr class="">
-                        <th class="p-4">รหัสอุปกรณ์</th>
-                        <th class="p-4">สินค้า</th>
-                        <th class="p-4">รูปสินค้า</th>
-                        <th class="p-4">ราคา</th>
-                        <th class="p-4">จำนวน</th>
-                        <th class="p-4">ผู้เช่า</th>
-                        <th class="p-4">ระยะเวลา</th>
-                        <th class="p-4">วันที่รับ</th>
-                        <th class="p-4">วันที่คืน</th>
-                        <th class="p-4">เวลาคงเหลือ</th>
-                        <th class="p-4">สถานะ</th>
-                        <th class="p-4"> </th>
+                    <tr class="text-white">
+                        <th class="p-3">รหัสอุปกรณ์</th>
+                        <th class="p-3">สินค้า</th>
+                        <th class="p-3">รูปสินค้า</th>
+                        <th class="p-3">ราคา</th>
+                        <th class="p-3">จำนวน</th>
+                        <th class="p-3">ผู้เช่า</th>
+                        <th class="p-3">ระยะเวลา</th>
+                        <th class="p-3">วันที่รับ</th>
+                        <th class="p-3">วันที่คืน</th>
+                        <th class="p-3">เวลาคงเหลือ</th>
+                        <th class="p-3">สถานะ</th>
+                        <th class="p-3"> </th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for record in rental_records %}
-                    <tr class="border-b border-gray-700">
+                    {% for record in page_obj %}
+                    <tr class="border-b text-white border-gray-700">
                         <td class="p-3">{{ record.order_code }}</td>
                         <td class="p-3">{{ record.product.name }}</td>
                         <td class="p-3">
@@ -61,18 +61,32 @@
                         </td>
                         <td class="p-3">{{ record.total_price|intcomma }} บาท</td>
                         <td class="p-3">{{ record.amount }} ชิ้น</td>
-                        <td class="p-3">{{ record.user.full_name }}</td>
+                        <td class="p-3">
+                            <a href="javascript:void(0);" class="text-blue-400"
+                                onclick="showUserDetails(
+                                    '{{ record.user.full_name }}',
+                                    '{{ record.user.email }}',
+                                    '{{ record.user.tel_number }}',
+                                    '{{ record.user.sex }}',
+                                    '{{ record.user.address }}',
+                                    '{{ record.user.avatar.url  }}'
+                                )">
+                                {{ record.user.full_name }}
+                            </a>
+                        </td>
                         <td class="p-3">{{ record.ren_time }} วัน</td>
                         <td class="p-3">{{ record.get_date|date:"d/m/Y" }}</td>
                         <td class="p-3">{{ record.return_date|date:"d/m/Y" }}</td>
-                        <td class="p-3">
-                            {% if record.time_remaining >= 0 %}
-                            <span class="text-green-500">{{ record.time_remaining }} วัน</span>
-                            {% else %}
-                            <span class="text-red-500">{{ record.overdue_time }} วัน</span>
+                        <td class="p-3 text-center">
+                            {% if record.status == 'returned' %}
+                                <span class="text-gray-500">0 วัน</span>
+                            {% elif record.status == 'overdue' %}
+                                <span class="text-red-500">-{{ record.overdue_time }} วัน</span>
+                            {% elif record.time_remaining >= 0 %}
+                                <span class="text-green-500">{{ record.time_remaining }} วัน</span>
                             {% endif %}
-                        </td>
-                        <td class="p-3">
+                        </td>                        
+                        <td class="p-3 text-center">
                             {% if record.status == 'pending' %}
                             <span class="text-gray-400">รอรับสินค้า</span>
                             {% elif record.status == 'renting' %}
@@ -84,14 +98,127 @@
                             {% endif %}
                         </td>
                         <td class="p-3">
-                            <button type="submit" class="bg-yellow-400 text-black">คืนสินค้า</button>
+                            {% if record.status != 'returned' %}
+                                <button 
+                                    type="button" 
+                                    class="bg-yellow-400 text-black px-3 py-1 rounded"
+                                    onclick="openConfirmationPopup('{{ record.order_code }}')">
+                                    คืนสินค้า
+                                </button>
+                            {% else %}
+                                <span></span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <div class="mt-4 flex justify-center">
+            <nav class="inline-flex">
+                {% if page_obj.has_previous %}
+                    <!-- หน้าแรก -->
+                    <a href="?page=1" class="px-3 py-2 bg-gray-700 text-white rounded-l hover:bg-gray-600">
+                        <span class="material-icons">first_page</span>
+                    </a>
+                    <!-- ก่อนหน้า -->
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                        <span class="material-icons">chevron_left</span>
+                    </a>
+                {% endif %}
+                    
+                <!-- เลขหน้าปัจจุบัน -->
+                <span class="px-3 py-2 text-white">
+                    {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <!-- ถัดไป -->
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                        <span class="material-icons">chevron_right</span>
+                    </a>
+                    <!-- หน้าสุดท้าย -->
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 bg-gray-700 text-white rounded-r hover:bg-gray-600">
+                        <span class="material-icons">last_page</span>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
     </div>
 </div>
+
+<!-- ป๊อปอัปยืนยันการคืนสินค้า -->
+<div id="confirmation-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg w-96 p-6 text-center">
+        <p class="text-xl font-semibold mb-4">ได้รับสินค้าคืนแล้วใช่หรือไม่?</p>
+        <form method="POST" id="confirm-return-form">
+            {% csrf_token %}
+            <input type="hidden" name="order_code" id="hidden-order-code">
+            <div class="flex justify-around mt-6">
+                <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded-lg">ใช่</button>
+                <button type="button" class="bg-red-500 text-white px-6 py-2 rounded-lg" onclick="document.getElementById('confirmation-popup').classList.add('hidden')">ไม่ใช่</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- User Detail Popup -->
+<div id="user-detail-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg w-4/5 max-w-4xl p-8 relative">
+        <!-- ปุ่มปิด -->
+        <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl" onclick="closeUserDetails()">✖</button>
+        
+        <div class="flex ml-16">
+            <!-- ส่วนรูปผู้ใช้งาน -->
+            <div class="flex-shrink-0 mr-8">
+                <img id="popup-avatar" src="" alt="Avatar" 
+                     class="w-40 h-40 rounded-full border border-gray-300 shadow-lg">
+            </div>
+
+            <!-- ส่วนข้อมูลผู้ใช้ -->
+            <div class="flex-grow">
+                <p id="popup-full-name" class="text-2xl font-bold mb-4">ชื่อผู้ใช้: -</p>
+                <p id="popup-email" class="text-lg text-gray-700 mb-3">อีเมล: -</p>
+                <p id="popup-tel-number" class="text-lg text-gray-700 mb-3">หมายเลขโทรศัพท์: -</p>
+                <p id="popup-sex" class="text-lg text-gray-700 mb-3">เพศ: -</p>
+            </div>
+        </div>
+
+        <!-- ส่วนที่อยู่ -->
+        <div class="mt-6 border-t pt-4">
+            <p id="popup-address" class="text-lg text-center text-gray-700">ที่อยู่: -</p>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function openConfirmationPopup(orderCode) {
+        document.getElementById('hidden-order-code').value = orderCode; // ใส่ order_code ใน input
+        document.getElementById('confirmation-popup').classList.remove('hidden'); // แสดงป๊อปอัป
+    }
+
+    function showUserDetails(fullName, email, telNumber, sex, address, avatar) {
+        document.getElementById('popup-full-name').textContent = `ชื่อผู้ใช้: ${fullName}`;
+        document.getElementById('popup-email').textContent = `อีเมล: ${email}`;
+        document.getElementById('popup-tel-number').textContent = `เบอร์โทร: ${telNumber}`;
+        document.getElementById('popup-sex').textContent = `เพศ: ${sex === 'M' ? 'ชาย' : 'หญิง'}`;
+        document.getElementById('popup-address').textContent = `ที่อยู่: ${address}`;
+        const avatarElement = document.getElementById('popup-avatar');
+        if (avatar) {
+            avatarElement.src = avatar;
+            avatarElement.style.display = 'block';
+        } else {
+            avatarElement.style.display = 'none';
+        }
+        document.getElementById('user-detail-popup').classList.remove('hidden');
+    }
+
+    function closeUserDetails() {
+        document.getElementById('user-detail-popup').classList.add('hidden');
+    }
+</script>
 
 {% endblock %}

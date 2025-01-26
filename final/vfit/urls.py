@@ -26,6 +26,10 @@ urlpatterns = [
 
     path('rental/product/<int:pk>/', rental_detail, name='rental_detail'),
     path('rental/confirm-view/<int:pk>/', rental_confirm, name='rental_confirm'),
+    path('save_address/', save_address, name='save_address'),
+    path('delete-address/', shop_delete_address, name='shop_delete_address'),
+    path('edit-address/', shop_edit_address, name='shop_edit_address'),
+   
 
     path('shop/confirm/<int:product_id>/', shop_confirm, name='shop_confirm'),
     path('create-order/', create_order, name='create_order'),

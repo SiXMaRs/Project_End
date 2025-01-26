@@ -80,7 +80,15 @@ class RentalRecord(models.Model):
             self.get_date = datetime.strptime(self.get_date, '%Y-%m-%d').date()
         if isinstance(self.return_date, str):
             self.return_date = datetime.strptime(self.return_date, '%Y-%m-%d').date()
-        
+
+        # หยุดการอัปเดตเมื่อสถานะเป็น 'returned'
+        if self.status == 'returned':
+            self.time_remaining = 0
+            self.overdue_time = 0
+            self.save()
+            return
+
+        # อัปเดตสถานะและเวลาตามวันที่ปัจจุบัน
         if now_time < self.get_date:
             self.status = 'pending'
             self.time_remaining = self.ren_time

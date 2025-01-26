@@ -1,50 +1,186 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
-    
+<div class="min-h-screen text-gray-100 flex flex-col">
     <main class="flex-grow flex justify-center items-start pt-8">
-        <div class="rounded-lg shadow-lg max-w-4xl w-full p-6">
+        <div class="shadow-lg max-w-4xl w-full p-6">
 
-            <div class="bg-white border-b mb-8 border-gray-300 pb-4">
-                <h2 class="text-lg font-semibold text-gray-800">ที่อยู่ผู้เช่า:</h2>
-                <p class="text-sm text-gray-600 font-semibold">{{ user.full_name }} {{ user.tel_number }}</p>
-                <p class="text-sm text-gray-600">{{ user.address }}</p>
-            </div>
-
-            <div class="mb-6 border-b bg-white border-gray-300 pb-4">
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">ยืนยันการเช่าสินค้า</h1>
-                <div class="flex items-center border-b ">
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-24 h-24 border rounded-lg">
-                    <div class="ml-4">
-                        <h3 class="text-lg text-gray-900">{{ product.name }}</h3>
-                        <p class="text-sm text-gray-600">จำนวน: {{ rental_record.quantity }}</p>
-                        <p class="text-sm text-gray-600">ราคาต่อหน่วย: {{ product.price|intcomma }} บาท</p>
-                        <br> <br> 
-                       
+            <!-- ที่อยู่ผู้เช่า -->
+            <div class="bg-yellow-400 p-4 mb-6 text-black flex items-center justify-between">
+                <div>
+                    <div>
+                        <span class="material-icons mb-4 mr-2">location_on ที่อยู่ผู้เช่า:</span>
+                        {% if user.address %}
+                            <p class="text-sm ml-2">
+                                <span class="font-semibold">{{ user.full_name }}</span>
+                                <span class="font-semibold">{{ user.tel_number }}</span>
+                                {{ user.address }}
+                            </p>
+                        {% else %}
+                            <p class="text-sm ml-2 text-red-500">** กรุณาเพิ่มที่อยู่ก่อนทำการสั่งจอง **</p>
+                        {% endif %}
                     </div>
                 </div>
-                <br><br><br>
-                <p class="flex text-sm justify-end text-gray-600">คำสั่งจองทั้งหมด({{ rental_record.quantity }} ชิ้น): {{ product.price|intcomma }} บาท</p>
+                <a href="#" id="change-address-btn" class="text-blue-600 underline">เปลี่ยน</a>
             </div>
 
-            <div class="mb-6 bg-white">
-                <h2 class="text-lg font-semibold text-gray-800">รายละเอียดการเช่า:</h2>
-                <p class="text-sm text-gray-600">วันที่รับสินค้า: {{ rental_record.pickup_date }}</p>
-                <p class="text-sm text-gray-600">ระยะเวลาการเช่า: {{ rental_record.rental_duration }} วัน</p>
-                <p class="text-sm text-gray-600">วันที่คืนสินค้า: {{ rental_record.return_date }}</p>
-
-                <h2 class="text-lg font-semibold text-gray-800 mt-4">ยอดชำระ:</h2>
-                <p class="text-2xl text-red-500 font-bold">{{ rental_record.total_price|intcomma }} บาท</p>
-                <form method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500">
-                        ยืนยันการเช่า
-                    </button>
-                </form>
+            <!-- สินค้าเช่า -->
+            <div class="bg-white p-4 shadow-md mb-6">
+                <h1 class="text-lg font-semibold text-gray-900 mb-4">จองเช่าสินค้าแล้ว</h1>
+                <div class="grid grid-cols-4 gap-4 items-center">
+                    <div class="col-span-1">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-auto border">
+                    </div>
+                    <div class="col-span-2">
+                        <h3 class="text-xl text-gray-900 font-bold">{{ product.name }}</h3>
+                    </div>
+                    <div class="col-span-1 text-right">
+                        <div class="flex justify-between">
+                            <p class="text-gray-600">ราคาต่อสัปดาห์:</p>
+                            <p class="text-gray-600">จำนวน:</p>
+                        </div>
+                        <div class="flex justify-between mt-2">
+                            <p class="text-gray-900 font-semibold">{{ product.price|intcomma }} บาท</p>
+                            <p class="text-gray-900 font-semibold">{{ rental_record.quantity }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t mt-4 pt-4 justify-end flex items-center">
+                    <p class="text-sm mr-2 text-gray-600">คำสั่งจองทั้งหมด ({{ rental_record.quantity }} ชิ้น):</p>
+                    <p class="text-orange-500 text-lg">{{ rental_record.total_price|intcomma }} บาท</p>
+                </div>
             </div>
-            
+
+            <!-- ยอดเงินที่ต้องชำระ -->
+            <div class="w-full max-w-4xl bg-white shadow-md p-6 flex justify-between items-start">
+                <div>
+                    <h2 class="text-1xl font-semibold text-gray-900 mb-4">ยอดเงินที่ต้องชำระ:</h2>
+                </div>
+                <div class="flex justify-between items-center -mr-48">
+                    <div>
+                        <p class="text-sm text-gray-600">วันที่รับสินค้า:</p>
+                        <p class="text-sm text-gray-600">ระยะเวลาเช่า:</p>
+                        <p class="text-sm text-gray-600">ยอดชำระทั้งหมด:</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-black ml-4">{{ rental_record.pickup_date }}</p>
+                        <p class="text-sm text-black ml-4">{{ rental_record.rental_duration }} วัน</p>
+                        <p class="text-xl text-red-500 ml-4">{{ rental_record.total_price|intcomma }} บาท</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <form method="POST" id="booking-form">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-yellow-400 mt-2 text-black px-6 py-2 rounded-lg hover:bg-yellow-500">สั่งจอง</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </main>
 </div>
+
+<!-- ป๊อปอัปที่อยู่ -->
+<div id="address-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <div class="flex justify-between mb-8">
+            <h2 class="text-xl font-bold mb-4">ที่อยู่ของฉัน</h2>
+            <button id="add-address-btn" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-500 mr-2">เพิ่มที่อยู่</button>
+        </div>
+        
+        <div id="address-list" class="mb-4">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <div>
+                    <p class="text-black">{{ user.full_name }}</p>
+                    <p class="text-black">{{ user.tel_number }}</p>
+                    <p class="text-black">{{ user.address }}</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-blue-600 font-medium hover:underline edit-address-btn">แก้ไข</button>
+                    <button class="text-red-600 font-medium hover:underline delete-address-btn">ลบ</button>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end">
+            <button id="close-popup-btn" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">ปิด</button>
+        </div>
+    </div>
+</div>
+
+<!-- ป๊อปอัปเพิ่มที่อยู่ -->
+<div id="add-new-address-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 class="text-xl font-bold mb-4">เพิ่มที่อยู่ใหม่</h2>
+        <form id="add-new-address-form">
+            <div class="mb-4">
+                <label for="new-address" class="block text-gray-700 font-semibold mb-2">ที่อยู่</label>
+                <textarea id="new-address" name="new_address" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" id="cancel-add-new-address-btn" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 mr-2">ยกเลิก</button>
+                <button type="submit" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-500">บันทึก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const popup = document.getElementById('address-popup');
+        const addNewAddressPopup = document.getElementById('add-new-address-popup');
+        const changeBtn = document.getElementById('change-address-btn');
+        const closeBtn = document.getElementById('close-popup-btn');
+        const addAddressBtn = document.getElementById('add-address-btn');
+        const cancelAddNewAddressBtn = document.getElementById('cancel-add-new-address-btn');
+        const addNewAddressForm = document.getElementById('add-new-address-form');
+
+        // เปิด-ปิดป๊อปอัป
+        changeBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            popup.classList.remove('hidden');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            popup.classList.add('hidden');
+        });
+
+        addAddressBtn.addEventListener('click', () => {
+            addNewAddressPopup.classList.remove('hidden');
+        });
+
+        cancelAddNewAddressBtn.addEventListener('click', () => {
+            addNewAddressPopup.classList.add('hidden');
+        });
+
+        // บันทึกข้อมูลที่อยู่ใหม่
+        addNewAddressForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const newAddress = document.getElementById('new-address').value;
+
+            try {
+                const response = await fetch('/save_address/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ address: newAddress }),
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    alert(data.message);
+                    addNewAddressPopup.classList.add('hidden');
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาด');
+            }
+        });
+    });
+</script>
 {% endblock %}
