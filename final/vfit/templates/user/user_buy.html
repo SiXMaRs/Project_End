@@ -31,7 +31,7 @@
                                 <p>จำนวน: x{{ buy.amount }}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-lg text-white">{{ product.price|intcomma }} บาท</p>
+                                <p class="text-lg text-white">{{ buy.product.price|intcomma }} บาท</p>
                             </div>
                         </div>
                         {% empty %}

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rentalForm = document.getElementById('rental-form'); // ฟอร์มการเช่า
 
     // ข้อมูลช่วงวันที่ไม่ว่าง (ดึงมาจาก backend)
-    const unavailablePeriods = {{ unavailable_periods|safe }};
+    const unavailablePeriods = {{ unavailable_periods|safe }} ;
     const unavailableDates = [];
     const bufferDays = 5; // จำนวนวันกันชนสำหรับการซ่อมบำรุง
 

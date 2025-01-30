@@ -6,10 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.9/css/unicons.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="section">
+  <div class="section noto">
     <div class="container">
       <div class="row full-height justify-content-center">
         <div class="col-12 text-center align-self-center py-5">
@@ -39,7 +40,7 @@
                         <button type="submit" class="btn mt-4">Login</button>
                       </form>
                       <p class="mb-0 mt-4 text-center">
-                        <a href="" class="link">Forgot your password?</a>
+                        <a href="{% url 'reset_password' %}" class="link">Forgot your password?</a>
                       </p>
                     </div>
                   </div>
@@ -93,17 +94,16 @@
 
 <style>
 body{
-	font-family: 'Poppins', sans-serif;
 	font-weight: 300;
 	line-height: 1.7;
-	color: #ffeba7;
-	background-color: #1f2029;
+	color: #FDE047;
+	background-color: #111827;
 }
 a:hover {
 	text-decoration: none;
 }
 .link {
-  color: #ffeba7;
+  color: #FDE047;
 }
 .link:hover {
   color: #c4c3ca;
@@ -113,12 +113,13 @@ p {
   font-size: 14px;
 }
 h4 {
-  font-weight: 600;
+  font-weight: 400;
   top: 60px;
+  font-size:35px ;
 }
 h6 span{
   padding: 0 20px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .section{
   position: relative;
@@ -143,7 +144,7 @@ display: none;
   padding: 0;
   margin: 10px auto;
   cursor: pointer;
-  background-color: #ffeba7;
+  background-color: #FDE047;
 }
 .checkbox:checked + label:before,
 .checkbox:not(:checked) + label:before{
@@ -152,7 +153,7 @@ display: none;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  color: #ffeba7;
+  color: #FDE047;
   background-color: #020305;
   font-family: 'unicons';
   content: '\eb4f';
@@ -281,13 +282,18 @@ display: none;
   display: -ms-inline-flexbox;
   display: inline-flex;
   align-items: center;
-  background-color: #ffeba7;
+  background-color: #FDE047;
   color: #000000;
 }
 .btn:hover{  
   background-color: #000000;
-  color: #ffeba7;
+  color: #FDE047;
   box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
 }
-
+.noto{
+                font-family: "Noto Sans Thai", sans-serif;
+                font-optical-sizing: auto;
+                font-style: normal;
+            }
+</style>
 </style>

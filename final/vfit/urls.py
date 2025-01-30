@@ -8,10 +8,14 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('main/', main_view, name='main'),
 
+
     # Auth
     path('register/', register, name='register'),
     path('login/', login, name='login'),
     path('logout/', logout, name='logout'),
+    path('reset_password/', reset_password, name='reset_password'),
+    path('reset_password_confirm/', reset_password_confirm, name='reset_password_confirm'),
+
 
     #NavToProfile
     path('redirect-profile/', redirect_profile, name='redirect_profile'),
@@ -30,14 +34,12 @@ urlpatterns = [
     path('delete-address/', shop_delete_address, name='shop_delete_address'),
     path('edit-address/', shop_edit_address, name='shop_edit_address'),
    
-
     path('shop/confirm/<int:product_id>/', shop_confirm, name='shop_confirm'),
     path('create-order/', create_order, name='create_order'),
 
     path('user_buy', user_buy_history, name='user_buy' ),
     path('user_rental', user_rental_history, name='user_rental' ),
     path('report/', report_issue, name='report_issue'),
-
 
 
     # Admin

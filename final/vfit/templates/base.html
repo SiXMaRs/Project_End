@@ -5,11 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <title>{% block title %}Default Title{% endblock %}</title>
+  <!-- <title>{% block title %}Default Title{% endblock %}</title> -->
 </head>
-<body class="bg-gray-900">
+<style>
+   .noto{
+                font-family: "Noto Sans Thai", sans-serif;
+                font-optical-sizing: auto;
+                font-style: normal;
+            }
+</style>
+<body class="bg-gray-900 noto">
     {% include 'navbar.html' %}
     <div class="">
       {% block content %}

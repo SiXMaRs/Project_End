@@ -12,7 +12,7 @@ class Users(models.Model):
     password = models.CharField(max_length=255)
     sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     address = models.TextField()
-    is_superuser = models.BooleanField(default=False)  # เพิ่มฟิลด์นี้สำหรับแยก superuser
+    is_superuser = models.BooleanField(default=False)  #แยก superuser
 
     def __str__(self):
         return self.full_name

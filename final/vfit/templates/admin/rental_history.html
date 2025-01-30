@@ -16,7 +16,7 @@
             </div>
             <div class="bg-white text-black text-center py-4 rounded-lg">
                 <p class="text-lg">อุปกรณ์ที่ถูกจอง:</p>
-                <p class="text-3xl">{{ pending_return_count }} ชิ้น</p>
+                <p class="text-3xl">{{ pending_count }} ชิ้น</p>
             </div>
             <div class="bg-green-500 text-white text-center py-4 rounded-lg">
                 <p class="text-lg">อุปกรณ์ที่คืนแล้ว:</p>
@@ -62,7 +62,7 @@
                         <td class="p-3">{{ record.total_price|intcomma }} บาท</td>
                         <td class="p-3">{{ record.amount }} ชิ้น</td>
                         <td class="p-3">
-                            <a href="javascript:void(0);" class="text-blue-400"
+                            <a href="javascript:void(0);" class="text-blue-400 underline"
                                 onclick="showUserDetails(
                                     '{{ record.user.full_name }}',
                                     '{{ record.user.email }}',

@@ -3,12 +3,15 @@ from django.shortcuts import redirect, render,get_object_or_404
 from django.contrib.auth.hashers import check_password
 from django.utils.timezone import now
 from django.core.paginator import Paginator
+from django.core.cache import cache
+from django.core.mail import send_mail
 from celery import shared_task
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Sum, Q
 import random, string
+import math
 import json
 from .models import *
 from .forms import *
@@ -59,6 +62,72 @@ def login(request):
 def logout(request):
     request.session.flush() 
     return redirect('login')
+
+def reset_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+
+        try:
+            user = Users.objects.get(email=email)
+
+            # สร้าง OTP แบบสุ่ม 6 หลัก
+            otp = random.randint(100000, 999999)
+
+            # บันทึก OTP ใน Cache (หมดอายุใน 5 นาที)
+            cache.set(f'otp_{email}', otp, timeout=300)
+
+            # ส่ง OTP ไปยังอีเมล
+            send_mail(
+                'Your OTP for Reset Password',
+                f'Your OTP code is: {otp}. This code will expire in 5 minutes.',
+                'noreply@vfit.com',
+                [email],
+                fail_silently=False,
+            )
+
+            request.session['reset_email'] = email  # เก็บอีเมลไว้ใช้ในขั้นตอนถัดไป
+            return redirect('reset_password_confirm')
+
+        except Users.DoesNotExist:
+            messages.error(request, 'Email not found!')
+
+    return render(request, 'reset_password.html')
+
+def reset_password_confirm(request):
+    email = request.session.get('reset_email')
+
+    if request.method == 'POST':
+        otp_input = request.POST.get('otp')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+
+        # ดึง OTP ที่เก็บไว้ใน Cache
+        otp_stored = cache.get(f'otp_{email}')
+
+        if not otp_stored or otp_input != str(otp_stored):
+            messages.error(request, 'Invalid or expired OTP!')
+            return render(request, 'reset_password_confirm.html')
+
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match!')
+            return render(request, 'reset_password_confirm.html')
+
+        try:
+            user = Users.objects.get(email=email)
+            user.set_password(password)
+            user.save()
+
+            # ลบ OTP หลังจากใช้งาน
+            cache.delete(f'otp_{email}')
+            del request.session['reset_email']
+
+            messages.success(request, 'Your password has been reset successfully!')
+            return redirect('login')
+
+        except Users.DoesNotExist:
+            messages.error(request, 'Something went wrong. Try again!')
+
+    return render(request, 'reset_password_confirm.html')
 
 # mainpage
 def home_view(request):
@@ -196,26 +265,24 @@ def report_issue(request):
     except Users.DoesNotExist:
         return redirect('login')
     
-    rental_records = RentalRecord.objects.filter(user_id=user_id)
+    # ดึงเฉพาะอุปกรณ์ที่มีสถานะเป็น "renting"
+    rental_records = RentalRecord.objects.filter(user_id=user_id, status="renting")
 
     if request.method == 'POST':
         rental_code_id = request.POST.get('rental_code')
         issue_description = request.POST.get('issue_description')
 
-        # ตรวจสอบข้อมูลที่ได้รับ
         if not rental_code_id or not issue_description:
             messages.error(request, 'กรุณากรอกข้อมูลให้ครบถ้วน')
             return redirect('report_issue')
 
         try:
-            # ใช้ order_code (primary key) ในการค้นหา
             rental_record = RentalRecord.objects.get(order_code=rental_code_id)
-            
-            # สร้างรายงานและบันทึกลงดาต้าเบส
+
             Report.objects.create(
                 rental_code=rental_record,
                 issue_description=issue_description,
-                status='in_progress'  # ค่าเริ่มต้น
+                status='in_progress'
             )
             messages.success(request, 'แจ้งปัญหาสำเร็จแล้ว')
         except RentalRecord.DoesNotExist:
@@ -227,11 +294,10 @@ def report_issue(request):
 
         return redirect('report_issue')
 
-    # ดึงข้อมูลรายงานที่เกี่ยวข้องกับผู้ใช้งาน
     reports = Report.objects.filter(rental_code__user_id=user_id)
 
     context = {
-        'rental_records': rental_records,
+        'rental_records': rental_records,  # ส่งเฉพาะอุปกรณ์ที่กำลังเช่า
         'reports': reports,
         'user': user,
     }
@@ -294,7 +360,6 @@ def admin_rental_list(request):
         return redirect('login')
 
     if request.method == 'POST':
-        # ตรวจสอบคำขอคืนสินค้า
         order_code = request.POST.get('order_code')
         if order_code:
             try:
@@ -310,23 +375,25 @@ def admin_rental_list(request):
 
     # นับจำนวนตามสถานะ
     renting_count = RentalRecord.objects.filter(status='renting').count()
-    pending_return_count = RentalRecord.objects.filter(status='pending').count()
+    pending_count = RentalRecord.objects.filter(status='pending').count()
     returned_count = RentalRecord.objects.filter(status='returned').count()
     overdue_count = RentalRecord.objects.filter(status='overdue').count()
 
     # ดึงข้อมูลการเช่าทั้งหมด
     rental_records = RentalRecord.objects.select_related('product', 'user').all()
+    now = datetime.now()
+    for rental in rental_records:
+        rental.update_time_status()
 
-    # แบ่งหน้า
     paginator = Paginator(rental_records, 5)  # แสดง 5 รายการต่อหน้า
     page_number = request.GET.get('page')  # รับหมายเลขหน้าจาก query parameter
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'page_obj': page_obj,  # ส่ง object หน้าปัจจุบันไปยัง template
+        'page_obj': page_obj, 
         'user': user,
         'renting_count': renting_count,
-        'pending_return_count': pending_return_count,
+        'pending_count': pending_count,
         'returned_count': returned_count,
         'overdue_count': overdue_count,
     }
@@ -568,7 +635,7 @@ def rental_confirm(request, pk):
 
     user_id = request.session['user_id']
     try:
-        user = Users.objects.get(id=user_id)  # ดึงข้อมูลผู้ใช้
+        user = Users.objects.get(id=user_id)
     except Users.DoesNotExist:
         return redirect('login')
 
@@ -582,13 +649,12 @@ def rental_confirm(request, pk):
 
     if request.method == 'POST':
         quantity = 1
-        # Calculate total price based on duration and weekly rate
-        total_price = (product.price * rental_duration) / 7  # คำนวณราคาแบบรายสัปดาห์
+        total_price = math.ceil((product.price * rental_duration) / 7)  # ปัดขึ้น
 
         pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
         return_date_obj = pickup_date_obj + timedelta(days=rental_duration)
         order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-        # Create new rental record
+
         rental = RentalRecord.objects.create(
             order_code=order_code,
             product=product,
@@ -598,25 +664,19 @@ def rental_confirm(request, pk):
             ren_time=rental_duration,
             get_date=pickup_date,
             return_date=return_date_obj.strftime('%Y-%m-%d'),
-            status="pending"  # Set initial status as pending until pickup date
+            status="pending"
         )
 
-        # Initialize the time status
         rental.update_time_status()
-
-        # Clear the session data
         del request.session['rental_info']
 
-        # Redirect to success page or shop
         messages.success(request, 'การเช่าสำเร็จ')
         return redirect('shop')
 
-    # Calculate return date and total price for preview
     pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
     return_date_obj = pickup_date_obj + timedelta(days=rental_duration)
-    total_price = (product.price * rental_duration) / 7  # คำนวณราคาแบบรายสัปดาห์
+    total_price = math.ceil((product.price * rental_duration) / 7)  # ปัดขึ้น
 
-    # Prepare rental record data for template
     preview_data = {
         'quantity': 1,
         'rental_duration': rental_duration,
@@ -628,7 +688,7 @@ def rental_confirm(request, pk):
     return render(request, 'user/rental_confirm.html', {
         'product': product,
         'rental_record': preview_data,
-        'user': user  # ส่งข้อมูลผู้ใช้ไปยังเทมเพลต
+        'user': user
     })
 
 @csrf_exempt

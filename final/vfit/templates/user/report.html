@@ -66,7 +66,11 @@
                 <select id="rental_code" name="rental_code" class="w-full p-2 border border-gray-300 rounded">
                     <option value="">-- เลือกอุปกรณ์ที่ต้องการแจ้งซ่อม --</option>
                     {% for rental in rental_records %}
-                    <option value="{{ rental.order_code }}">{{ rental.order_code }} - {{ rental.product.name }}</option>
+                        <option value="{{ rental.order_code }}">
+                            {{ rental.order_code }} - {{ rental.product.name }}
+                        </option>
+                    {% empty %}
+                        <option value="" disabled>ไม่มีอุปกรณ์ที่กำลังเช่า</option>
                     {% endfor %}
                 </select>
             </div>
