@@ -33,7 +33,7 @@
         <!-- Header -->
         <div class="sticky z-30 px-6 py-4 shadow-md">
             <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">รายการอุปกรณ์</h1>
+                <h1 class="text-2xl ">รายการอุปกรณ์</h1>
                 <div class="flex items-center space-x-4">
                     <!-- Button to open filter popup -->
                     <button onclick="openFilterPopup()" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
@@ -48,7 +48,7 @@
         <div class="overflow-y-auto h-[calc(100vh-5rem)] p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {% for product in products %}
-                <div class="rounded-lg border border-gray-700 shadow-lg overflow-hidden">
+                <div class="rounded-lg border border-gray-700 shadow-lg overflow-hidden hover:border-2 hover:border-white ">
                     <a href="{% if product.type == 'เช่ายืม' %}{% url 'rental_detail' product.pk %}{% else %}{% url 'shop_detail' product.pk %}{% endif %}">
                         <div class="w-full h-48 flex items-center justify-center">
                             <img src="{{ product.image.url }}" alt="รูปสินค้า" class="w-40 h-40">

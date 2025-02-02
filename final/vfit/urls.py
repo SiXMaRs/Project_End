@@ -57,4 +57,7 @@ urlpatterns = [
     
     path('report-list', report_list, name='report_list'),
 
+
+    #Exercise
+    path('exercise/', exercise_view, name='exercise'),
 ]

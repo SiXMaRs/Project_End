@@ -228,9 +228,19 @@ def user_rental_history(request):
     for rental in rentals:
         rental.update_time_status()
 
+    # กรองข้อมูลตามหมวดหมู่
+    status = request.GET.get('status', 'all')
+    if status == 'reserved':
+        rentals = rentals.filter(status='reserved')
+    elif status == 'renting':
+        rentals = rentals.filter(status='renting')
+    elif status == 'overdue':
+        rentals = rentals.filter(status__in=['returned', 'overdue'])    
+
     context = {
         'rental_history': rentals,
         'user': user,
+        'status': status,   
         }
     return render(request, 'user/user_rental.html', context)
 
@@ -239,20 +249,29 @@ def user_buy_history(request):
     if 'user_id' not in request.session:
         return redirect('login')  
 
-    user_id = request.session['user_id']  # ดึง user_id จาก session
+    user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
     except Users.DoesNotExist:
         return redirect('login')
 
-    # ดึงข้อมูลการสั่งซื้อเฉพาะของ User คนนั้น
+    # รับค่าหมวดหมู่จาก URL parameter (ค่าเริ่มต้นคือ 'all')
+    status = request.GET.get('status', 'all')
+
+    # ดึงข้อมูลการซื้อของผู้ใช้
     buy_history = buy_record.objects.filter(user_id=user_id).select_related('product')
+
+    # กรองข้อมูลตามหมวดหมู่ที่เลือก
+    if status == 'pending':  # อุปกรณ์ที่ยังไม่ได้รับ
+        buy_history = buy_history.filter(is_received=False)
 
     context = {
         'buy_history': buy_history,
         'user': user,
+        'status': status,  # ส่งไปใช้กับ Template
     }
     return render(request, 'user/user_buy.html', context)
+
 
 
 def report_issue(request):
@@ -403,33 +422,34 @@ def admin_rental_list(request):
 def buy_history(request):
     if 'user_id' not in request.session:
         return redirect('login')
+
     user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
-        if not user.is_superuser:  
-            return redirect('main')  
+        if not user.is_superuser:
+            return redirect('main')
     except Users.DoesNotExist:
         return redirect('login')
-    
-    if request.method == "POST" and 'avatar' in request.FILES:
-        user.avatar = request.FILES['avatar']
-        user.save()
-        return redirect('buy_history')
-    
-    orders = buy_record.objects.select_related('product', 'user').all()
 
-    paginator = Paginator(orders, 6)  # กำหนดให้แสดง 6 รายการต่อหน้า
-    page_number = request.GET.get('page')  # รับเลขหน้าจาก URL
-    page_obj = paginator.get_page(page_number)  # ดึงรายการของหน้าที่เลือก
+    category_filter = request.GET.get('category', '')
+
+    orders = buy_record.objects.select_related('product', 'user')
+    if category_filter:
+        orders = orders.filter(product__category=category_filter)
+
+    paginator = Paginator(orders, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     total_orders = orders.count()
     pending_items = orders.filter(get_date__gte=now().date(), is_received=False).count()
-    
+
     context = {
         'user': user,
-        'page_obj': page_obj, 
+        'page_obj': page_obj,
         'total_orders': total_orders,
         'pending_items': pending_items,
+        'selected_category': category_filter,
     }
     return render(request, 'admin/buy_history.html', context)
 
@@ -836,3 +856,6 @@ def create_order(request):
     return JsonResponse({'status': 'fail', 'message': 'Invalid request method'}, status=405)
 
 
+#Exercise function
+def exercise_view(request):
+    return render(request, 'exercise/chest.html')  
