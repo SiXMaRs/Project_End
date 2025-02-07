@@ -80,7 +80,7 @@ def reset_password(request):
             send_mail(
                 'Your OTP for Reset Password',
                 f'Your OTP code is: {otp}. This code will expire in 5 minutes.',
-                'noreply@vfit.com',
+                'wuttinan0934426621@gmail.com',
                 [email],
                 fail_silently=False,
             )
@@ -93,8 +93,13 @@ def reset_password(request):
 
     return render(request, 'reset_password.html')
 
+
 def reset_password_confirm(request):
     email = request.session.get('reset_email')
+
+    if not email:
+        messages.error(request, "Session expired! Please request OTP again.")
+        return redirect('reset_password') 
 
     if request.method == 'POST':
         otp_input = request.POST.get('otp')
@@ -103,17 +108,20 @@ def reset_password_confirm(request):
 
         # ดึง OTP ที่เก็บไว้ใน Cache
         otp_stored = cache.get(f'otp_{email}')
+        print(f"Checking OTP for {email}: {otp_stored} (User entered: {otp_input})")  
 
         if not otp_stored or otp_input != str(otp_stored):
             messages.error(request, 'Invalid or expired OTP!')
-            return render(request, 'reset_password_confirm.html')
+            return redirect('reset_password_confirm')  
 
         if password != password_confirm:
             messages.error(request, 'Passwords do not match!')
-            return render(request, 'reset_password_confirm.html')
+            return redirect('reset_password_confirm') 
 
         try:
             user = Users.objects.get(email=email)
+            print(f"User found: {user}")  
+
             user.set_password(password)
             user.save()
 
@@ -122,12 +130,17 @@ def reset_password_confirm(request):
             del request.session['reset_email']
 
             messages.success(request, 'Your password has been reset successfully!')
-            return redirect('login')
+
+            print("Redirecting to login page")  # Debug
+            return redirect('login')  # Redirect ไปหน้า Login หลังจากเปลี่ยนรหัสผ่านสำเร็จ
 
         except Users.DoesNotExist:
             messages.error(request, 'Something went wrong. Try again!')
+            print("User does not exist in database")  # Debug
+            return redirect('reset_password')
 
     return render(request, 'reset_password_confirm.html')
+
 
 # mainpage
 def home_view(request):
@@ -152,6 +165,45 @@ def redirect_profile(request):
     else:
         return redirect('login')
 
+def contact(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    user_id = request.session.get('user_id')
+    user = Users.objects.filter(id=user_id).first()
+    
+    # ถ้ายังไม่มี Contact ในฐานข้อมูล ให้สร้างอัตโนมัติ
+    contact, created = Contact.objects.get_or_create(id=1)
+
+    context = {
+        'contact': contact,
+        'user': user  # ส่ง user ไปที่ template
+    }
+    return render(request, 'contact.html', context)
+
+def update_contact(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    user_id = request.session.get('user_id')
+    user = Users.objects.filter(id=user_id).first()
+    
+    if not user or not user.is_superuser:
+        return redirect('contact')
+
+    if request.method == 'POST':
+        contact, created = Contact.objects.get_or_create(id=1)
+        contact.email = request.POST.get('email', contact.email)
+        contact.facebook = request.POST.get('facebook', contact.facebook)
+        contact.instagram = request.POST.get('instagram', contact.instagram)
+        contact.line = request.POST.get('line', contact.line)
+        contact.phone = request.POST.get('phone', contact.phone)
+        contact.address = request.POST.get('address', contact.address)
+        contact.save()
+
+        return redirect('contact')
+
+    return redirect('contact')
 
 
 # user function
@@ -230,8 +282,8 @@ def user_rental_history(request):
 
     # กรองข้อมูลตามหมวดหมู่
     status = request.GET.get('status', 'all')
-    if status == 'reserved':
-        rentals = rentals.filter(status='reserved')
+    if status == 'pending':
+        rentals = rentals.filter(status='pending')
     elif status == 'renting':
         rentals = rentals.filter(status='renting')
     elif status == 'overdue':
@@ -368,54 +420,55 @@ def dashboard(request):
 
 def admin_rental_list(request):
     if 'user_id' not in request.session:
-        return redirect('login') 
-    
+        return redirect('login')
+
     user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
-        if not user.is_superuser: 
-            return redirect('main')  
+        if not user.is_superuser:
+            return redirect('main')
     except Users.DoesNotExist:
         return redirect('login')
 
-    if request.method == 'POST':
-        order_code = request.POST.get('order_code')
-        if order_code:
-            try:
-                rental_record = RentalRecord.objects.get(order_code=order_code)
-                rental_record.status = 'returned'  # เปลี่ยนสถานะเป็นคืนสินค้าแล้ว
-                rental_record.time_remaining = 0  # หยุดการนับเวลาคงเหลือ
-                rental_record.overdue_time = 0  # หยุดการนับเวลาเกิน
-                rental_record.save()
-                messages.success(request, f'รายการ {order_code} ถูกคืนแล้ว')
-            except RentalRecord.DoesNotExist:
-                messages.error(request, f'ไม่พบรายการ {order_code}')
-        return redirect('admin_rental_list')
+    if request.method == "POST":
+        order_code = request.POST.get("order_code")
+        rental = RentalRecord.objects.filter(order_code=order_code).first()
 
-    # นับจำนวนตามสถานะ
+        if rental:
+            rental.status = "returned"
+            rental.save()
+
+    status = request.GET.get('status', 'all')
+    rental_records = RentalRecord.objects.select_related('product', 'user').all()
+
+    if status == 'renting':
+        rental_records = rental_records.filter(status='renting')
+    elif status == 'pending':
+        rental_records = rental_records.filter(status='pending')
+    elif status == 'returned':
+        rental_records = rental_records.filter(status='returned')
+    elif status == 'overdue':
+        rental_records = rental_records.filter(status='overdue')
+
     renting_count = RentalRecord.objects.filter(status='renting').count()
     pending_count = RentalRecord.objects.filter(status='pending').count()
     returned_count = RentalRecord.objects.filter(status='returned').count()
     overdue_count = RentalRecord.objects.filter(status='overdue').count()
 
-    # ดึงข้อมูลการเช่าทั้งหมด
-    rental_records = RentalRecord.objects.select_related('product', 'user').all()
-    now = datetime.now()
-    for rental in rental_records:
-        rental.update_time_status()
-
-    paginator = Paginator(rental_records, 5)  # แสดง 5 รายการต่อหน้า
-    page_number = request.GET.get('page')  # รับหมายเลขหน้าจาก query parameter
+    paginator = Paginator(rental_records, 5)
+    page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'page_obj': page_obj, 
+        'page_obj': page_obj,
         'user': user,
         'renting_count': renting_count,
         'pending_count': pending_count,
         'returned_count': returned_count,
         'overdue_count': overdue_count,
+        'status': status,
     }
+
     return render(request, 'admin/rental_history.html', context)
 
 
@@ -432,8 +485,18 @@ def buy_history(request):
         return redirect('login')
 
     category_filter = request.GET.get('category', '')
+    pending_filter = request.GET.get('pending', '')
 
+    # ดึงรายการสั่งซื้อทั้งหมด
     orders = buy_record.objects.select_related('product', 'user')
+
+    # คำนวณจำนวนอุปกรณ์ที่ต้องมารับ
+    pending_items_count = orders.filter(get_date__gte=now().date(), is_received=False).count()
+
+    # ใช้ filter เฉพาะถ้ากด "อุปกรณ์ที่ต้องมารับ"
+    if pending_filter == "true":
+        orders = orders.filter(is_received=False)
+
     if category_filter:
         orders = orders.filter(product__category=category_filter)
 
@@ -441,17 +504,19 @@ def buy_history(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    total_orders = orders.count()
-    pending_items = orders.filter(get_date__gte=now().date(), is_received=False).count()
+    total_orders = buy_record.objects.count()  # นับรายการทั้งหมด ไม่ใช่เฉพาะที่ต้องรับ
 
     context = {
         'user': user,
         'page_obj': page_obj,
-        'total_orders': total_orders,
-        'pending_items': pending_items,
+        'total_orders': total_orders,  # ใช้จำนวนทั้งหมด ไม่เปลี่ยนค่าตามการกรอง
+        'pending_items': pending_items_count,  # ใช้ตัวแปรแยกต่างหาก
         'selected_category': category_filter,
+        'pending_filter': pending_filter,
+        'buy_history': orders,
     }
     return render(request, 'admin/buy_history.html', context)
+
 
 def received(request, order_code):
     """เปลี่ยนสถานะเป็น 'มารับสินค้าแล้ว'"""
@@ -511,12 +576,7 @@ def add_product(request):
     try:
         user = Users.objects.get(id=user_id)
     except Users.DoesNotExist:
-        return redirect('login') 
-
-    if request.method == "POST" and 'avatar' in request.FILES:
-        user.avatar = request.FILES['avatar']
-        user.save()
-        return redirect('add_product')
+        return redirect('login')
 
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -535,24 +595,29 @@ def add_product(request):
             image=image
         )
         product.save()
-        return redirect('add_product')  
+        return redirect('add_product')
+
+    selected_category = request.GET.get('category', '')
 
     products = Product.objects.filter(is_available=True)
+    if selected_category:
+        products = products.filter(category=selected_category)
 
-    paginator = Paginator(products, 5) 
-    page_number = request.GET.get('page')  # รับเลขหน้าปัจจุบันจาก URL
-    page_obj = paginator.get_page(page_number)  # ดึงสินค้าของหน้าที่เลือก
+    paginator = Paginator(products, 5)  # แสดง 5 รายการต่อหน้า
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     total_items = products.count()
     rental_items = products.filter(type="เช่ายืม").count()
     second_hand_items = products.filter(type="มือสอง").count()
 
     return render(request, 'admin/productlist.html', {
-        'page_obj': page_obj,  # ส่ง Pagination object ไปยัง template
+        'page_obj': page_obj,
         'user': user,
         'total_items': total_items,
         'rental_items': rental_items,
         'second_hand_items': second_hand_items,
+        'selected_category': selected_category,  # ส่งค่าฟิลเตอร์ไป template
     })
 
 

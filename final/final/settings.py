@@ -141,7 +141,11 @@ SESSION_COOKIE_AGE = 4000000
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_PORT = 587 
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False 
 EMAIL_HOST_USER = 'wuttinan0934426621@gmail.com'
-EMAIL_HOST_PASSWORD = 'hkhg kppe mzxa kwkj'
+EMAIL_HOST_PASSWORD = 'ifxn lnjt gxvi shhb'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+

@@ -8,10 +8,10 @@
 
             <!-- Navigation Tabs -->
             <div class="flex justify-start mb-6 -mt-8 -mr-8 -ml-8">
-                <a href="?status=all" class="w-1/2 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'all' %} bg-yellow-500  border-b-2 border-yellow-400 text-black {% else %} bg-black text-yellow-600  hover:text-yellow-500 {% endif %}">
+                <a href="?status=all" class="w-1/2 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'all' %} bg-yellow-500  border-b-2 border-yellow-400 text-black {% else %} bg-gray-600 text-yellow-600  hover:text-white {% endif %}">
                     ประวัติการซื้อ
                 </a>
-                <a href="?status=pending" class="w-1/2 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'pending' %} bg-yellow-500  border-b-2 border-yellow-400 text-black {% else %} bg-black text-yellow-600  hover:text-yellow-500 {% endif %}">
+                <a href="?status=pending" class="w-1/2 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'pending' %} bg-yellow-500  border-b-2 border-yellow-400 text-black {% else %} bg-gray-600 text-yellow-600  hover:text-white {% endif %}">
                     อุปกรณ์ที่ต้องรับ
                 </a>
             </div>
@@ -40,6 +40,14 @@
                             </div>
                             <div class="text-right">
                                 <p class="text-lg text-white">{{ buy.product.price|intcomma }} บาท</p>
+                                <p>
+                                    สถานะ: 
+                                    {% if buy.is_received %}
+                                        <span class="text-green-400">มารับแล้ว</span>
+                                    {% else %}
+                                        <span class="text-yellow-400">รอรับสินค้า</span>
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
                         {% empty %}

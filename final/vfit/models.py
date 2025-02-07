@@ -120,3 +120,17 @@ class Report(models.Model):
 
     def __str__(self):
         return f"Report {self.id} - Rental: {self.rental_code.order_code} (Status: {self.get_status_display()})"
+    
+
+class Contact(models.Model):
+    email = models.EmailField()
+    facebook = models.CharField(max_length=255, blank=True, null=True)
+    instagram = models.CharField(max_length=255, blank=True, null=True)
+    line = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    latitude = models.FloatField(default=15.117421421361927)  # ค่าเริ่มต้นคือมหาลัยอุบล
+    longitude = models.FloatField(default=104.90284046686651)
+
+    def __str__(self):
+        return self.email

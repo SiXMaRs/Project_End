@@ -9,14 +9,18 @@
     <!-- Main Content -->
     <div class="w-3/4 ml-80 pt-20 px-8">
         <div class="grid grid-cols-2 gap-8 mb-8">
-            <div class="bg-white text-black rounded-lg shadow-lg p-6 text-center">
-                <h2 class="text-2xl mb-2">รายการซื้อทั้งหมด:</h2>
-                <p class="text-3xl">{{ total_orders }} ชิ้น</p>
-            </div>
-            <div class="bg-yellow-500 text-black rounded-lg shadow-lg p-6 text-center">
-                <h2 class="text-2xl mb-2">อุปกรณ์ที่ต้องมารับ:</h2>
-                <p class="text-3xl">{{ pending_items }} ชิ้น</p>
-            </div>
+            <a href="?" >
+                <div class="bg-white text-black rounded-lg shadow-lg p-6 text-center">
+                    <h2 class="text-2xl mb-2">รายการซื้อทั้งหมด:</h2>
+                    <p class="text-3xl">{{ total_orders }} ชิ้น</p>
+                </div>
+            </a>
+            <a href="?pending=true">
+                <div class="bg-yellow-500 text-black rounded-lg shadow-lg p-6 text-center">
+                    <h2 class="text-2xl mb-2">อุปกรณ์ที่ต้องมารับ:</h2>
+                    <p class="text-3xl">{{ pending_items }} ชิ้น</p>
+                </div>
+            </a>
         </div>
 
         <div class="">
@@ -76,16 +80,16 @@
                                 {% if order.is_received %}
                                     <span class="text-green-500 font-bold">มารับแล้ว</span>
                                 {% else %}
-                                    <div class="flex gap-2 justify-center">
-                                        <a href="{% url 'received' order.order_code %}" 
-                                           class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
-                                            มารับแล้ว
-                                        </a>
-                                        <a href="{% url 'not_received' order.order_code %}" 
-                                           class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                                            ไม่มารับ
-                                        </a>
-                                    </div>
+                                <div class="flex gap-2 justify-center">
+                                    <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded confirm-received-btn"
+                                            data-url="{% url 'received' order.order_code %}">
+                                        มารับแล้ว
+                                    </button>
+                                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded confirm-not-received-btn"
+                                            data-url="{% url 'not_received' order.order_code %}">
+                                        ไม่มารับ
+                                    </button>
+                                </div>
                                 {% endif %}
                             </td>
                         </tr>
@@ -189,7 +193,75 @@
     </div>
 </div>
 
+<!-- ป๊อปอัพยืนยันสำหรับ "มารับสินค้าแล้ว" -->
+<div id="confirm-received-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+        <p class="text-xl font-semibold mb-4">ยืนยันว่าลูกค้ามารับสินค้าแล้ว?</p>
+        <div class="flex justify-center gap-4">
+            <button id="confirm-received-yes" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded">ใช่</button>
+            <button id="confirm-received-no" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded">ยกเลิก</button>
+        </div>
+    </div>
+</div>
+
+<!-- ป๊อปอัพยืนยันสำหรับ "ไม่มารับสินค้า" -->
+<div id="confirm-not-received-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+        <p class="text-xl font-semibold mb-4">ยืนยันว่าลูกค้าไม่ได้มารับสินค้า?</p>
+        <div class="flex justify-center gap-4">
+            <button id="confirm-not-received-yes" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded">ใช่</button>
+            <button id="confirm-not-received-no" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded">ยกเลิก</button>
+        </div>
+    </div>
+</div>
+
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+        // ป๊อปอัพ "มารับสินค้าแล้ว"
+        const confirmReceivedPopup = document.getElementById('confirm-received-popup');
+        const confirmReceivedYes = document.getElementById('confirm-received-yes');
+        const confirmReceivedNo = document.getElementById('confirm-received-no');
+
+        // ป๊อปอัพ "ไม่มารับสินค้า"
+        const confirmNotReceivedPopup = document.getElementById('confirm-not-received-popup');
+        const confirmNotReceivedYes = document.getElementById('confirm-not-received-yes');
+        const confirmNotReceivedNo = document.getElementById('confirm-not-received-no');
+
+        let actionUrl = ""; // เก็บ URL ที่ต้องการส่งไป
+
+        // กดปุ่ม "มารับแล้ว" → เปิดป๊อปอัพยืนยัน
+        document.querySelectorAll('.confirm-received-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                actionUrl = this.getAttribute('data-url');
+                confirmReceivedPopup.classList.remove('hidden');
+            });
+        });
+
+        // กดปุ่ม "ไม่มารับ" → เปิดป๊อปอัพยืนยัน
+        document.querySelectorAll('.confirm-not-received-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                actionUrl = this.getAttribute('data-url');
+                confirmNotReceivedPopup.classList.remove('hidden');
+            });
+        });
+
+        // เมื่อกด "ใช่" → เปลี่ยนหน้าไปยัง URL ที่กำหนด
+        confirmReceivedYes.addEventListener('click', () => {
+            window.location.href = actionUrl;
+        });
+        confirmNotReceivedYes.addEventListener('click', () => {
+            window.location.href = actionUrl;
+        });
+
+        // เมื่อกด "ยกเลิก" → ปิดป๊อปอัพ
+        confirmReceivedNo.addEventListener('click', () => {
+            confirmReceivedPopup.classList.add('hidden');
+        });
+        confirmNotReceivedNo.addEventListener('click', () => {
+            confirmNotReceivedPopup.classList.add('hidden');
+        });
+    });
+
     function showUserDetails(fullName, email, telNumber, sex, address, avatar) {
         document.getElementById('popup-full-name').textContent = ` ${fullName}`;
         document.getElementById('popup-email').textContent = `อีเมล: ${email}`;
@@ -217,6 +289,8 @@
     function closeFilterPopup() {
         document.getElementById('filter-popup').classList.add('hidden');
     }
+
+
 
 
 </script>

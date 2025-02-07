@@ -59,12 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const pricePreview = document.getElementById('price-preview');
     const totalPriceElement = document.getElementById('total-price');
     const returnDateElement = document.getElementById('return-date');
-    const rentalForm = document.getElementById('rental-form'); // ฟอร์มการเช่า
+    const rentalForm = document.getElementById('rental-form'); 
 
     // ข้อมูลช่วงวันที่ไม่ว่าง (ดึงมาจาก backend)
     const unavailablePeriods = {{ unavailable_periods|safe }} ;
     const unavailableDates = [];
-    const bufferDays = 5; // จำนวนวันกันชนสำหรับการซ่อมบำรุง
+    const bufferDays = 5; 
 
     // แปลงข้อมูลช่วงวันที่ไม่ว่างเป็น Array
     unavailablePeriods.forEach(period => {

@@ -37,10 +37,13 @@
                     <button onclick="openProductModal(false)" class="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500">
                         เพิ่มสินค้า
                     </button>
-                    <button class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
-                        <span class="material-icons mr-2">filter_list</span>
-                        ฟิลเตอร์
-                    </button>
+                    <div class="flex space-x-4">
+                        <button class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center"
+                            onclick="openFilterPopup()">
+                            <span class="material-icons mr-2">filter_list</span>
+                            ฟิลเตอร์
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -203,6 +206,39 @@
         </div>
     </div>
 </div>
+
+<div id="filter-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg w-1/3 p-6 relative">
+        <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl" onclick="closeFilterPopup()">✖</button>
+        <h2 class="text-lg text-black font-semibold mb-4">ประเภท :</h2>
+        <form id="filter-form" method="GET" action="{% url 'add_product' %}">
+            <div class="flex text-black space-x-6 ml-8 items-center">
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="category" value="ดัมเบล" {% if selected_category == "ดัมเบล" %}checked{% endif %}>
+                    <span>ดัมเบล</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="category" value="บาร์เบล" {% if selected_category == "บาร์เบล" %}checked{% endif %}>
+                    <span>บาร์เบล</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="category" value="โฮมยิม" {% if selected_category == "โฮมยิม" %}checked{% endif %}>
+                    <span>โฮมยิม</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="category" value="" {% if selected_category == "" %}checked{% endif %}>
+                    <span>ทั้งหมด</span>
+                </label>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button type="submit" class="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500">
+                    ยืนยัน
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openProductModal(isEdit = false, product = null) {
         document.getElementById('modalTitle').textContent = isEdit ? 'แก้ไขสินค้า' : 'สินค้าใหม่';
@@ -243,5 +279,14 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    function openFilterPopup() {
+        document.getElementById('filter-popup').classList.remove('hidden');
+    }
+
+    function closeFilterPopup() {
+        document.getElementById('filter-popup').classList.add('hidden');
+    }
 </script>
+
 {% endblock %}

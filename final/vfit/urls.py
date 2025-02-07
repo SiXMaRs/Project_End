@@ -41,6 +41,9 @@ urlpatterns = [
     path('user_rental', user_rental_history, name='user_rental' ),
     path('report/', report_issue, name='report_issue'),
 
+    path('contact/', contact, name='contact'),
+    path('update-contact/', update_contact, name='update_contact'),
+
 
     # Admin
     path('dashboard/', dashboard, name='dashboard'),

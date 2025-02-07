@@ -10,18 +10,18 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 gap-4 px-6 py-4">
             <div class="bg-white text-black text-center py-4 rounded-lg">
-                <p class="text-lg">รายการแจ้งซ่อม:</p>
+                <p class="text-lg">รายการแจ้งปัญหา:</p>
                 <p class="text-3xl">{{ in_progress_count }} ชิ้น</p>
             </div>
             <div class="bg-yellow-500 text-black text-center py-4 rounded-lg">
-                <p class="text-lg">อุปกรณ์ที่ซ่อมแล้ว:</p>
+                <p class="text-lg">อุปกรณ์ที่ปัญหาแล้ว:</p>
                 <p class="text-3xl">{{ completed_count }} ชิ้น</p>
             </div>
         </div>
 
         <!-- Filter -->
         <div class="px-6 py-4 flex justify-between">
-            <h1 class="text-2xl">รายการอุปกรณ์ที่แจ้งซ่อมวันนี้:</h1>
+            <h1 class="text-2xl">รายการอุปกรณ์ที่แจ้งปัญหาวันนี้:</h1>
             <button class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
                 <span class="material-icons mr-2">filter_list</span>
                 ฟิลเตอร์
@@ -85,7 +85,7 @@
                         <td colspan="8" class="text-center text-gray-500 py-8">
                             <div class="flex flex-col items-center">
                                 <span class="material-icons text-7xl">report_problem</span>
-                                <p>ยังไม่มีการแจ้งซ่อม</p>
+                                <p>ยังไม่มีการแจ้งปัญหา</p>
                             </div>
                         </td>
                     </tr>

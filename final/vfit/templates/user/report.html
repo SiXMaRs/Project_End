@@ -5,7 +5,7 @@
         {% include 'user/menu.html' %}
             <div class="flex-1 mt-20 ml-35 p-6">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-2xl text-white ">รายการอุปกรณ์ที่แจ้งซ่อม</h1>
+                    <h1 class="text-2xl text-white ">รายการอุปกรณ์ที่แจ้งปัญหา</h1>
                     <button onclick="openReportPopup()" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600">
                         แจ้งปัญหา
                     </button>
@@ -43,7 +43,7 @@
                             <td colspan="5" class="text-center text-gray-500 py-8">
                                 <div class="flex flex-col items-center">
                                     <span class="material-icons text-7xl">report_problem</span>
-                                    <p>ยังไม่มีอุปกรณ์ที่แจ้งซ่อม</p>
+                                    <p>ยังไม่มีอุปกรณ์ที่แจ้งปัญหา</p>
                                 </div>
                             </td>
                         </tr>
@@ -58,13 +58,13 @@
 <!-- แจ้งปัญหา Popup -->
 <div id="reportPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-1/3">
-        <h2 class="text-xl font-bold mb-4 text-black">แจ้งซ่อมอุปกรณ์</h2>
+        <h2 class="text-xl font-bold mb-4 text-black">แจ้งปัญหาอุปกรณ์</h2>
         <form method="POST">
             {% csrf_token %}
             <div class="mb-4">
                 <label for="rental_code" class="block text-black mb-2">รหัสการเช่า:</label>
                 <select id="rental_code" name="rental_code" class="w-full p-2 border border-gray-300 rounded">
-                    <option value="">-- เลือกอุปกรณ์ที่ต้องการแจ้งซ่อม --</option>
+                    <option value="">-- เลือกอุปกรณ์ที่ต้องการแจ้งปัญหา --</option>
                     {% for rental in rental_records %}
                         <option value="{{ rental.order_code }}">
                             {{ rental.order_code }} - {{ rental.product.name }}
