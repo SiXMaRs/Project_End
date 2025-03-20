@@ -3,59 +3,82 @@
 <div class=" min-h-screen pt-20">
     <div class="flex">
         {% include 'user/menu.html' %}
-            <div class="flex-1 mt-20 ml-35 p-6">
-                <div class="flex justify-between items-center">
-                    <h1 class="text-2xl text-white ">รายการอุปกรณ์ที่แจ้งปัญหา</h1>
-                    <button onclick="openReportPopup()" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600">
-                        แจ้งปัญหา
-                    </button>
-                </div>
-        
-                <table class="w-full mt-6 border-collapse">
-                    <thead>
-                        <tr class="text-left text-white border-b border-gray-700">
-                            <th class="p-4">รหัสอุปกรณ์</th>
-                            <th class="p-4">ชื่ออุปกรณ์</th>
-                            <th class="p-4">รูปอุปกรณ์</th>
-                            <th class="p-4">อาการ</th>
-                            <th class="p-4">สถานะ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for report in reports %}
-                        <tr class="border-b text-white border-gray-700">
-                            <td class="p-4">{{ report.rental_code.order_code }}</td>
-                            <td class="p-4">{{ report.rental_code.product.name }}</td>
-                            <td class="p-4">
-                                <img src="{{ report.rental_code.product.image.url }}" class="w-12 h-12 rounded" alt="Product Image">
-                            </td>
-                            <td class="p-4">{{ report.issue_description }}</td>
-                            <td class="p-4">
-                                {% if report.status == 'in_progress' %}
-                                <span class="text-yellow-500">กำลังดำเนินการ</span>
-                                {% elif report.status == 'completed' %}
-                                <span class="text-green-500">สำเร็จ</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-gray-500 py-8">
-                                <div class="flex flex-col items-center">
-                                    <span class="material-icons text-7xl">report_problem</span>
-                                    <p>ยังไม่มีอุปกรณ์ที่แจ้งปัญหา</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="flex-1 mt-20 ml-35 p-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl text-white ">รายการอุปกรณ์ที่แจ้งปัญหา</h1>
+                <button onclick="openReportPopup()" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600">
+                    แจ้งปัญหา
+                </button>
+            </div>
+    
+            <table class="w-full mt-6 border-collapse">
+                <thead>
+                    <tr class="text-left text-white border-b border-gray-700">
+                        <th class="p-4">รหัสอุปกรณ์</th>
+                        <th class="p-4">ชื่ออุปกรณ์</th>
+                        <th class="p-4">รูปอุปกรณ์</th>
+                        <th class="p-4">อาการ</th>
+                        <th class="p-4">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr class="border-b text-white border-gray-700">
+                        <td class="p-4">{{ report.rental_code.order_code }}</td>
+                        <td class="p-4">{{ report.rental_code.product.name }}</td>
+                        <td class="p-4">
+                            <img src="{{ report.rental_code.product.image.url }}" class="w-12 h-12 rounded" alt="Product Image">
+                        </td>
+                        <td class="p-4">{{ report.issue_description }}</td>
+                        <td class="p-4">
+                            {% if report.status == 'in_progress' %}
+                            <span class="text-yellow-500">กำลังดำเนินการ</span>
+                            {% elif report.status == 'completed' %}
+                            <span class="text-green-500">สำเร็จ</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-gray-500 py-8">
+                            <div class="flex flex-col items-center">
+                                <span class="material-icons text-7xl">report_problem</span>
+                                <p>ยังไม่มีอุปกรณ์ที่แจ้งปัญหา</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginator -->
+            <div class="mt-4 flex justify-center">
+                <nav class="inline-flex">
+                    {% if reports.has_previous %}
+                        <a href="?page=1" class="px-3 py-2 bg-gray-700 text-white rounded-l hover:bg-gray-600">
+                            <span class="material-icons">first_page</span>
+                        </a>
+                        <a href="?page={{ reports.previous_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                            <span class="material-icons">chevron_left</span>
+                        </a>
+                    {% endif %}
+                    
+                    <span class="px-3 py-2 bg-gray-800 text-white">
+                        {{ reports.number }} / {{ reports.paginator.num_pages }}
+                    </span>
+
+                    {% if reports.has_next %}
+                        <a href="?page={{ reports.next_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                            <span class="material-icons">chevron_right</span>
+                        </a>
+                        <a href="?page={{ reports.paginator.num_pages }}" class="px-3 py-2 bg-gray-700 text-white rounded-r hover:bg-gray-600">
+                            <span class="material-icons">last_page</span>
+                        </a>
+                    {% endif %}
+                </nav>
             </div>
         </div>
 
-   
-
-<!-- แจ้งปัญหา Popup -->
 <div id="reportPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-1/3">
         <h2 class="text-xl font-bold mb-4 text-black">แจ้งปัญหาอุปกรณ์</h2>

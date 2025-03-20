@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<div class="text-gray-100 font-poppins min-h-screen pt-20">
+    <div class="flex">
+        {% include 'admin/nav.html' %}
+        <div class="text-black w-3/4 p-4 ml-80 mb-6 mt-8">
+            <h1 class="text-xl text-white">แดชบอร์ดรายวัน</h1>
+
+            <!-- ตัวเลือกวันที่ -->
+            <div class="flex justify-between mb-4">
+                <label for="datePicker" class="text-lg text-white">เลือกวันที่:</label>
+                <input type="date" id="datePicker" value="{{ selected_date }}" class="border rounded px-2 py-1 text-gray-700">
+            </div>
+
+            <!-- แสดงข้อมูล -->
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                    <p class="text-gray-700">รายได้รวม:</p>
+                    <p class="text-2xl text-black" id="total_income">{{ daily_total_income|default:0|intcomma }} ฿</p>
+                </div>
+                <div class="bg-blue-500 p-4 rounded-lg shadow-md text-center">
+                    <p class="text-white">รายได้จากการซื้อ</p>
+                    <p class="text-2xl text-white" id="buy_income">{{ daily_buy_income|default:0|intcomma }} ฿</p>
+                </div>
+                <div class="bg-green-500 p-4 rounded-lg shadow-md text-center">
+                    <p class="text-white">รายได้จากการเช่า</p>
+                    <p class="text-2xl text-white" id="rental_income">{{ daily_rental_income|default:0|intcomma }} ฿</p>
+                </div>
+            </div>
+
+            <!-- กราฟ -->
+            <div class="grid grid-cols-2 gap-8">
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <p class="text-lg text-gray-700">กราฟสรุปรายได้</p>
+                    <canvas id="incomeChart" class="w-full h-64"></canvas>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <p class="text-lg text-gray-700">กราฟจำนวนเช่า-ซื้อ</p>
+                    <canvas id="orderChart" class="w-full h-64"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const datePicker = document.getElementById('datePicker');
+
+    function fetchData(date) {
+        fetch(`/dashboard/daily/?date=${date}`, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total_income').textContent = `${data.total_income} ฿`;
+                document.getElementById('buy_income').textContent = `${data.buy_income} ฿`;
+                document.getElementById('rental_income').textContent = `${data.rental_income} ฿`;
+            })
+            .catch(error => console.error("❌ Fetch error:", error));
+    }
+
+    datePicker.addEventListener('change', function () {
+        fetchData(this.value);
+    });
+
+    fetchData(datePicker.value);
+});
+</script>
+{% endblock %}

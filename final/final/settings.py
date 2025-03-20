@@ -149,3 +149,7 @@ EMAIL_HOST_PASSWORD = 'ifxn lnjt gxvi shhb'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    ' https://3ca4-202-176-128-186.ngrok-free.app',  
+]

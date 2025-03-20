@@ -1,54 +1,94 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<div class="flex bg-gray-900 text-gray-100 h-screen">
-    <!-- Sidebar -->
-    <div class="w-64 bg-gray-800 fixed top-20 left-0 h-[calc(100vh-5rem)] z-20">
+<div class="flex bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Sidebar (มือถือ: สามารถปิดได้) -->
+    <div id="sidebar" class="w-64 bg-gray-800 fixed top-0 left-0 h-full z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out md:top-20 md:h-[calc(100vh-5rem)]">
+        <div class="flex justify-between items-center p-4 md:hidden">
+            <h2 class="text-xl font-bold">เมนู</h2>
+            <button onclick="closeSidebar()" class="text-white text-2xl">&times;</button>
+        </div>
         <nav class="flex flex-col space-y-4 px-4 mt-4">
-            <a href="?category=ทั้งหมด" 
-                class="flex items-center p-3 rounded-lg {% if not current_category or current_category == 'ทั้งหมด' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
+            <a href="?category=ทั้งหมด" class="flex items-center p-3 rounded-lg {% if not current_category or current_category == 'ทั้งหมด' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
                 <span class="material-icons mr-3">list</span>
                 ทั้งหมด
             </a>
-            <a href="?category=ดัมเบล" 
-               class="flex items-center p-3 rounded-lg {% if current_category == 'ดัมเบล' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
+            <a href="?category=ดัมเบล" class="flex items-center p-3 rounded-lg {% if current_category == 'ดัมเบล' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
                 <span class="material-icons mr-3">fitness_center</span>
                 ดัมเบล
             </a>
-            <a href="?category=บาร์เบล" 
-               class="flex items-center p-3 rounded-lg {% if current_category == 'บาร์เบล' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
+            <a href="?category=บาร์เบล" class="flex items-center p-3 rounded-lg {% if current_category == 'บาร์เบล' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
                 <span class="material-icons mr-3">build</span>
                 บาร์เบล
             </a>
-            <a href="?category=โฮมยิม" 
-               class="flex items-center p-3 rounded-lg {% if current_category == 'โฮมยิม' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
+            <a href="?category=โฮมยิม" class="flex items-center p-3 rounded-lg {% if current_category == 'โฮมยิม' %}bg-gray-700 text-yellow-400{% else %}hover:bg-gray-700{% endif %}">
                 <span class="material-icons mr-3">home</span>
                 โฮมยิม
             </a>
         </nav>
     </div>
 
+    <!-- พื้นที่คลิกปิด Sidebar -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden md:hidden" onclick="closeSidebar()"></div>
+
     <!-- Main Content -->
-    <div class="flex-1 mt-20 ml-64">
+    <div class="flex-1 mt-20 md:ml-64">
         <!-- Header -->
-        <div class="sticky z-30 px-6 py-4 shadow-md">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl ">รายการอุปกรณ์</h1>
-                <div class="flex items-center space-x-4">
-                    <!-- Button to open filter popup -->
-                    <button onclick="openFilterPopup()" class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
-                        <span class="material-icons mr-2">filter_list</span>
-                        ฟิลเตอร์
-                    </button>
+        <div class="sticky z-30 px-6 py-4 shadow-md flex items-center justify-between bg-gray-900">
+            <!-- Hamburger Button -->
+            <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
+                <span class="material-icons">menu</span>
+            </button>
+
+            <h1 class="text-2xl">รายการอุปกรณ์</h1>
+            
+            <!-- ปุ่มฟิลเตอร์ (Dropdown บนมือถือ) -->
+            <div class="relative">
+                <button onclick="toggleFilterDropdown()" class="md:hidden bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
+                    <span class="material-icons mr-2">filter_list</span>
+                    ฟิลเตอร์
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div id="filterDropdown" class="absolute right-0 mt-2 w-48 bg-gray-800 text-white rounded-lg shadow-lg hidden md:hidden">
+                    <form method="GET" action="">
+                        <input type="hidden" name="category" value="{{ current_category }}">
+                        <label class="block px-4 py-2">ชนิดสินค้า:</label>
+                        <div class="px-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="type" value="" class="form-radio text-yellow-500" {% if not current_type %}checked{% endif %}>
+                                <span class="ml-2">ทั้งหมด</span>
+                            </label>
+                            <label class="flex items-center mt-2">
+                                <input type="radio" name="type" value="มือสอง" class="form-radio text-yellow-500" {% if current_type == 'มือสอง' %}checked{% endif %}>
+                                <span class="ml-2">มือสอง</span>
+                            </label>
+                            <label class="flex items-center mt-2">
+                                <input type="radio" name="type" value="เช่ายืม" class="form-radio text-yellow-500" {% if current_type == 'เช่ายืม' %}checked{% endif %}>
+                                <span class="ml-2">เช่ายืม</span>
+                            </label>
+                        </div>
+                        <div class="flex justify-end p-4">
+                            <button type="submit" class="px-4 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500">
+                                ยืนยัน
+                            </button>
+                        </div>
+                    </form>
                 </div>
+
+                <!-- ปุ่มฟิลเตอร์ปกติบนเดสก์ท็อป -->
+                <button onclick="openFilterPopup()" class="hidden md:block bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center">
+                    <span class="material-icons mr-2">filter_list</span>
+                    ฟิลเตอร์
+                </button>
             </div>
         </div>
 
         <!-- Product Grid -->
-        <div class="overflow-y-auto h-[calc(100vh-5rem)] p-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="overflow-y-auto p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {% for product in products %}
-                <div class="rounded-lg border border-gray-700 shadow-lg overflow-hidden hover:border-2 hover:border-white ">
+                <div class="rounded-lg border border-gray-700 shadow-lg overflow-hidden hover:border-2 hover:border-white">
                     <a href="{% if product.type == 'เช่ายืม' %}{% url 'rental_detail' product.pk %}{% else %}{% url 'shop_detail' product.pk %}{% endif %}">
                         <div class="w-full h-48 flex items-center justify-center">
                             <img src="{{ product.image.url }}" alt="รูปสินค้า" class="w-40 h-40">
@@ -74,6 +114,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Filter Popup -->
 <div id="filterPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
@@ -123,6 +164,21 @@
 
 <!-- JavaScript for Popup -->
 <script>
+    function openSidebar() {
+        document.getElementById('sidebar').classList.remove('-translate-x-full');
+        document.getElementById('sidebarOverlay').classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('sidebarOverlay').classList.add('hidden');
+    }
+
+    document.getElementById('menu-toggle').addEventListener('click', openSidebar);
+
+    function toggleFilterDropdown() {
+        document.getElementById('filterDropdown').classList.toggle('hidden');
+    }
     function openFilterPopup() {
         document.getElementById('filterPopup').classList.remove('hidden');
     }

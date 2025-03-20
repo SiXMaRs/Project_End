@@ -4,56 +4,87 @@
 <div class="text-gray-100 font-poppins min-h-screen pt-20">
     <div class="flex">
         {% include 'user/menu.html' %}
-        <div class="w-3/4 p-8 ml-6 mb-6 mr-8">
+        <div class="w-3/4 p-8 ml-6 mb-2 mr-8">
             
             <!-- Navigation Tabs -->
             <div class="flex justify-start mb-6 -mt-8 -mr-8 -ml-8">
-                <a href="?status=all" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'all' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
+                <a href="?status=all" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer 
+                   {% if status == 'all' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
                     ทั้งหมด
                 </a>
-                <a href="?status=pending" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'pending' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
+                <a href="?status=pending" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer 
+                   {% if status == 'pending' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
                     จองเช่า
                 </a>
-                <a href="?status=renting" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'renting' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
+                <a href="?status=renting" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer 
+                   {% if status == 'renting' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
                     กำลังเช่า
                 </a>
-                <a href="?status=overdue" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer {% if status == 'overdue' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
+                <a href="?status=overdue" class="w-1/4 py-4 px-4 text-xl text-center cursor-pointer 
+                   {% if status == 'overdue' %} bg-yellow-500 text-black {% else %} bg-black bg-opacity-50 text-yellow-500 {% endif %}">
                     หมดเวลาเช่ายืม
                 </a>
             </div>
 
             <!-- Rental History List -->
             <div class="w-full h-full overflow-hidden">
-                <div class="p-8 overflow-y-auto h-[calc(100%-2rem)]">
-                    {% for rental in rental_history %}
-                        <div class="bg-white text-black mb-8 border-b-2 p-4 rounded-lg">
-                            <div class="flex border-b-2 justify-between items-center mb-4">
-                                <p class="text-gray">รหัสอุปกรณ์: {{ rental.order_code }}</p>
+                <div class="p-4 overflow-y-auto h-[calc(100%-4rem)]">
+                    {% for rental in page_obj %}
+                        <div class="bg-white text-black mb-3 border p-3 rounded-lg shadow-md">
+                            <div class="flex border-b pb-2 justify-between items-center">
+                                <p class="text-gray-700 text-sm">รหัสอุปกรณ์: {{ rental.order_code }}</p>
                                 {% if rental.status == 'renting' %}
-                                    <p class="text-green-500">เวลาที่เหลือ: {{ rental.time_remaining }} วัน</p>
+                                    <p class="text-green-500 text-sm">เวลาที่เหลือ: {{ rental.time_remaining }} วัน</p>
                                 {% elif rental.status == 'overdue' %}
-                                    <p class="text-red-500">เกินกำหนดเวลา: {{ rental.overdue_time }} วัน</p>
+                                    <p class="text-red-500 text-sm">เกินกำหนดเวลา: {{ rental.overdue_time }} วัน</p>
                                 {% else %}
-                                    <p class="text-gray-500">สถานะ: {{ rental.get_status_display }}</p>
+                                    <p class="text-gray-500 text-sm">สถานะ: {{ rental.get_status_display }}</p>
                                 {% endif %}
                             </div>
-                            <div class="flex items-center">
-                                <img src="{{ rental.product.image.url }}" alt="{{ rental.product.name }}" class="w-20 h-20 rounded mr-4">
+                            <div class="flex items-center mt-2">
+                                <img src="{{ rental.product.image.url }}" alt="{{ rental.product.name }}" class="w-16 h-16 rounded mr-3">
                                 <div class="flex-1">
-                                    <h3 class="font-bold">{{ rental.product.name }}</h3>
-                                    <p>วันที่รับ: {{ rental.get_date|date:"d/m/Y" }}</p>
-                                    <p>วันที่ต้องคืน: {{ rental.return_date|date:"d/m/Y" }}</p>
-                                    <p>จำนวน: x{{ rental.amount }}</p>
-                                    <p class="text-gray-500">ประเภท: {{ rental.product.category }}</p>
+                                    <h3 class="font-bold text-lg">{{ rental.product.name }}</h3>
+                                    <p class="text-sm">วันที่รับ: {{ rental.get_date|date:"d/m/Y" }}</p>
+                                    <p class="text-sm">วันที่ต้องคืน: {{ rental.return_date|date:"d/m/Y" }}</p>
+                                    <p class="text-sm">จำนวน: x{{ rental.amount }}</p>
+                                    <p class="text-gray-600 text-sm">ประเภท: {{ rental.product.category }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-black">ค่าบริการ: {{ rental.total_price|intcomma }} บาท</p>
+                                    <p class="text-black font-semibold">{{ rental.total_price|intcomma }} บาท</p>
                                 </div>
                             </div>
                         </div>
                     {% empty %}
                         <p class="text-center text-gray-500">ไม่มีประวัติการเช่า</p>
                     {% endfor %}
+                </div>
+            
+                <!-- ✅ ปรับตำแหน่งปุ่มเลื่อนหน้า -->
+                <div class="mt-4 flex justify-center">
+                    <nav class="inline-flex">
+                        {% if page_obj.has_previous %}
+                            <a href="?status={{ status }}&page=1" class="px-3 py-2 bg-gray-700 text-white rounded-l hover:bg-gray-600">
+                                <span class="material-icons">first_page</span>
+                            </a>
+                            <a href="?status={{ status }}&page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                                <span class="material-icons">chevron_left</span>
+                            </a>
+                        {% endif %}
+                
+                        <span class="px-3 py-2 bg-gray-800 text-white">
+                            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                        </span>
+                
+                        {% if page_obj.has_next %}
+                            <a href="?status={{ status }}&page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-gray-700 text-white hover:bg-gray-600">
+                                <span class="material-icons">chevron_right</span>
+                            </a>
+                            <a href="?status={{ status }}&page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 bg-gray-700 text-white rounded-r hover:bg-gray-600">
+                                <span class="material-icons">last_page</span>
+                            </a>
+                        {% endif %}
+                    </nav>
                 </div>
             </div>
         </div>

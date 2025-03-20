@@ -44,7 +44,7 @@ class buy_record(models.Model):
     amount = models.IntegerField()
     buy_date = models.DateField(auto_now_add=True)
     get_date = models.DateField()
-    total_price = models.FloatField()
+    total_price = models.IntegerField()
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
     is_received = models.BooleanField(default=False)  # เพิ่มสถานะ
 
@@ -114,8 +114,8 @@ class Report(models.Model):
         ('completed', 'Completed'),
     ]
     rental_code = models.ForeignKey('RentalRecord', on_delete=models.CASCADE, related_name='reports') 
-    report_date = models.DateField(auto_now_add=True)  # วันที่รายงาน (อัตโนมัติเมื่อสร้าง)
-    issue_description = models.CharField(max_length=255)  # คำอธิบายปัญหา
+    report_date = models.DateField(auto_now_add=True)  
+    issue_description = models.CharField(max_length=255)  
     status = models.CharField( max_length=50, choices=STATUS_CHOICES, default='in_progress')
 
     def __str__(self):
@@ -127,10 +127,22 @@ class Contact(models.Model):
     facebook = models.CharField(max_length=255, blank=True, null=True)
     instagram = models.CharField(max_length=255, blank=True, null=True)
     line = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
+    phone = models.CharField(max_length=10, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    latitude = models.FloatField(default=15.117421421361927)  # ค่าเริ่มต้นคือมหาลัยอุบล
+    latitude = models.FloatField(default=15.117421421361927) 
     longitude = models.FloatField(default=104.90284046686651)
 
     def __str__(self):
         return self.email
+    
+class Exercise(models.Model):
+    name = models.CharField(max_length=255) 
+    description = models.TextField()  
+    image = models.ImageField(upload_to='exercises/')  
+    method = models.TextField() 
+    equipment = models.CharField(max_length=255, blank=True, null=True) 
+    sets = models.CharField(max_length=255) 
+    muscle = models.CharField(max_length=255) 
+
+    def __str__(self):
+        return self.name

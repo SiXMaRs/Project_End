@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.db import transaction
 from django.shortcuts import redirect, render,get_object_or_404
 from django.contrib.auth.hashers import check_password
 from django.utils.timezone import now
@@ -7,6 +8,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from celery import shared_task
 from datetime import datetime, timedelta
+from django.utils.dateparse import parse_date
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Sum, Q
@@ -53,9 +55,9 @@ def login(request):
                 request.session['user_id'] = user.id
                 return redirect('main')  
             else:
-                return render(request, 'login_register.html', {'error_login': 'Invalid credentials!'})
+                return render(request, 'login_register.html', {'error_login': 'รหัสผ่านไม่ถูกต้อง'})
         except Users.DoesNotExist:
-            return render(request, 'login_register.html', {'error_login': 'User not found!'})
+            return render(request, 'login_register.html', {'error_login': 'ไม่พบผู้ใช้ในระบบ'})
 
     return render(request, 'login_register.html')
 
@@ -171,15 +173,18 @@ def contact(request):
 
     user_id = request.session.get('user_id')
     user = Users.objects.filter(id=user_id).first()
-    
-    # ถ้ายังไม่มี Contact ในฐานข้อมูล ให้สร้างอัตโนมัติ
-    contact, created = Contact.objects.get_or_create(id=1)
+
+    try:
+        contact = Contact.objects.get(id=1)
+    except Contact.DoesNotExist:
+        contact = None  
 
     context = {
         'contact': contact,
-        'user': user  # ส่ง user ไปที่ template
+        'user': user  
     }
     return render(request, 'contact.html', context)
+
 
 def update_contact(request):
     if 'user_id' not in request.session:
@@ -192,7 +197,12 @@ def update_contact(request):
         return redirect('contact')
 
     if request.method == 'POST':
-        contact, created = Contact.objects.get_or_create(id=1)
+        try:
+            contact = Contact.objects.get(id=1)  
+        except Contact.DoesNotExist:
+            return redirect('contact')  
+
+        # อัปเดตข้อมูล
         contact.email = request.POST.get('email', contact.email)
         contact.facebook = request.POST.get('facebook', contact.facebook)
         contact.instagram = request.POST.get('instagram', contact.instagram)
@@ -204,7 +214,6 @@ def update_contact(request):
         return redirect('contact')
 
     return redirect('contact')
-
 
 # user function
 def profile(request):
@@ -274,26 +283,32 @@ def user_rental_history(request):
         user = Users.objects.get(id=user_id)
     except Users.DoesNotExist:
         return redirect('login')
+
     rentals = RentalRecord.objects.filter(user_id=user_id).select_related('product')
 
-    now = datetime.now()
+    # อัปเดตสถานะเวลา
     for rental in rentals:
         rental.update_time_status()
 
-    # กรองข้อมูลตามหมวดหมู่
+    # กรองข้อมูลตามสถานะ
     status = request.GET.get('status', 'all')
     if status == 'pending':
         rentals = rentals.filter(status='pending')
     elif status == 'renting':
         rentals = rentals.filter(status='renting')
     elif status == 'overdue':
-        rentals = rentals.filter(status__in=['returned', 'overdue'])    
+        rentals = rentals.filter(status__in=['returned', 'overdue'])
+
+    # ✅ ใช้ Paginator (5 รายการต่อหน้า)
+    paginator = Paginator(rentals, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        'rental_history': rentals,
+        'page_obj': page_obj,  # ใช้แทน rental_history
         'user': user,
         'status': status,   
-        }
+    }
     return render(request, 'user/user_rental.html', context)
 
 
@@ -317,13 +332,17 @@ def user_buy_history(request):
     if status == 'pending':  # อุปกรณ์ที่ยังไม่ได้รับ
         buy_history = buy_history.filter(is_received=False)
 
+    # ใช้ Paginator เพื่อแบ่งหน้า
+    paginator = Paginator(buy_history, 5)  # 5 รายการต่อหน้า
+    page_number = request.GET.get('page')  # กำหนดเลขหน้า
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'buy_history': buy_history,
+        'buy_history': page_obj,  # ส่ง page_obj ไปที่ template
         'user': user,
         'status': status,  # ส่งไปใช้กับ Template
     }
     return render(request, 'user/user_buy.html', context)
-
 
 
 def report_issue(request):
@@ -335,7 +354,7 @@ def report_issue(request):
         user = Users.objects.get(id=user_id)
     except Users.DoesNotExist:
         return redirect('login')
-    
+
     # ดึงเฉพาะอุปกรณ์ที่มีสถานะเป็น "renting"
     rental_records = RentalRecord.objects.filter(user_id=user_id, status="renting")
 
@@ -365,11 +384,15 @@ def report_issue(request):
 
         return redirect('report_issue')
 
-    reports = Report.objects.filter(rental_code__user_id=user_id)
+    reports = Report.objects.filter(rental_code__user_id=user_id).order_by('-status')
+
+    paginator = Paginator(reports, 5)  # 5 รายการต่อหน้า
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        'rental_records': rental_records,  # ส่งเฉพาะอุปกรณ์ที่กำลังเช่า
-        'reports': reports,
+        'rental_records': rental_records,
+        'reports': page_obj,  
         'user': user,
     }
     return render(request, 'user/report.html', context)
@@ -384,35 +407,119 @@ def dashboard(request):
     user_id = request.session['user_id']
     try:
         user = Users.objects.get(id=user_id)
-        if not user.is_superuser: 
-            return redirect('main')
     except Users.DoesNotExist:
         return redirect('login')
+    
+    today = now().date()
+    selected_date = request.GET.get('date', str(today))
+    range_type = request.GET.get('range', 'daily')
 
-    # คำนวณรายได้รวมจากการเช่า (เฉพาะสถานะ 'renting' และ 'returned')
-    rental_income = RentalRecord.objects.filter(
-        Q(status='renting') | Q(status='returned')
-    ).aggregate(total=Sum('total_price'))['total'] or 0
+    try:
+        selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+    except ValueError:
+        selected_date = today  
 
-    # คำนวณรายได้รวมจากการซื้อ (เฉพาะที่มารับสินค้าแล้ว)
-    buy_income = buy_record.objects.filter(is_received=True).aggregate(total=Sum('total_price'))['total'] or 0
+    total_income = 0
+    rental_income = 0
+    buy_income = 0
+    rental_orders = 0
+    buy_orders = 0
+    weekly_data = []
+    monthly_data = []
 
-    # รวมรายได้ทั้งหมด
-    total_income = rental_income + buy_income
+    if range_type == "daily":
+        rental_income = RentalRecord.objects.filter(get_date=selected_date).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        buy_income = buy_record.objects.filter(get_date=selected_date).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        rental_orders = RentalRecord.objects.filter(get_date=selected_date).count()
+        buy_orders = buy_record.objects.filter(get_date=selected_date).count()
+        total_income = rental_income + buy_income
 
-    # นับจำนวนรายการ
-    total_rentals = RentalRecord.objects.count()
-    total_buys = buy_record.objects.count()
+    elif range_type == "weekly":
+        start_week = selected_date - timedelta(days=selected_date.weekday())
+        for i in range(7):
+            day = start_week + timedelta(days=i)
+            rental_income_day = RentalRecord.objects.filter(get_date=day).aggregate(Sum('total_price'))['total_price__sum'] or 0
+            buy_income_day = buy_record.objects.filter(get_date=day).aggregate(Sum('total_price'))['total_price__sum'] or 0
+            rental_orders_day = RentalRecord.objects.filter(get_date=day).count()
+            buy_orders_day = buy_record.objects.filter(get_date=day).count()
+
+            total_income += rental_income_day + buy_income_day
+            rental_income += rental_income_day
+            buy_income += buy_income_day
+            rental_orders += rental_orders_day
+            buy_orders += buy_orders_day
+
+            weekly_data.append({
+                'label': day.strftime('%d/%m'),
+                'rental_income': rental_income_day,
+                'buy_income': buy_income_day,
+                'rental_orders': rental_orders_day,
+                'buy_orders': buy_orders_day
+            })
+
+    elif range_type == "monthly":
+        current_year = today.year
+        total_income = 0
+        rental_income = 0
+        buy_income = 0
+        rental_orders = 0
+        buy_orders = 0
+
+        monthly_data = []
+        for i in range(1, 13):
+            rental_income_month = RentalRecord.objects.filter(
+                get_date__month=i, get_date__year=current_year
+            ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+
+            buy_income_month = buy_record.objects.filter(
+                get_date__month=i, get_date__year=current_year
+            ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+
+            rental_orders_month = RentalRecord.objects.filter(
+                get_date__month=i, get_date__year=current_year
+            ).count()
+
+            buy_orders_month = buy_record.objects.filter(
+                get_date__month=i, get_date__year=current_year
+            ).count()
+
+            total_income += rental_income_month + buy_income_month
+            rental_income += rental_income_month
+            buy_income += buy_income_month
+            rental_orders += rental_orders_month
+            buy_orders += buy_orders_month
+
+            monthly_data.append({
+                'label': datetime.strptime(str(i), "%m").strftime("%B"),
+                'rental_income': rental_income_month,
+                'buy_income': buy_income_month,
+                'rental_orders': rental_orders_month,
+                'buy_orders': buy_orders_month
+            })
+
     total_reports = Report.objects.count()
+
+    daily_data = json.dumps({
+    "label": selected_date.strftime("%d/%m/%Y"),
+    "rental_income": rental_income,
+    "buy_income": buy_income,
+    "rental_orders": rental_orders if rental_orders else 0,  # ✅ ถ้าไม่มี ให้กำหนดค่าเป็น 0
+    "buy_orders": buy_orders if buy_orders else 0  # ✅ ถ้าไม่มี ให้กำหนดค่าเป็น 0
+    })
 
     context = {
         'user': user,
+        'selected_date': selected_date.strftime('%Y-%m-%d'),
+        'range_type': range_type,
         'total_income': total_income,
-        'rental_income': rental_income,
         'buy_income': buy_income,
-        'total_rentals': total_rentals,
-        'total_buys': total_buys,
+        'rental_income': rental_income,
+        'rental_orders': rental_orders,
+        'buy_orders': buy_orders,
         'total_reports': total_reports,
+        'daily_data': daily_data,  # ✅ ส่ง daily_data เป็น JSON
+        'weekly_data': json.dumps(weekly_data) if range_type == "weekly" else "[]",
+        'monthly_data': json.dumps(monthly_data) if range_type == "monthly" else "[]",
     }
 
     return render(request, 'admin/dashboard.html', context)
@@ -487,13 +594,12 @@ def buy_history(request):
     category_filter = request.GET.get('category', '')
     pending_filter = request.GET.get('pending', '')
 
-    # ดึงรายการสั่งซื้อทั้งหมด
-    orders = buy_record.objects.select_related('product', 'user')
+    orders = buy_record.objects.select_related('product', 'user').order_by('is_received', 'get_date', '-buy_date')
 
-    # คำนวณจำนวนอุปกรณ์ที่ต้องมารับ
-    pending_items_count = orders.filter(get_date__gte=now().date(), is_received=False).count()
+    today = now().date()
 
-    # ใช้ filter เฉพาะถ้ากด "อุปกรณ์ที่ต้องมารับ"
+    pending_items_count = orders.filter(is_received=False).count()
+
     if pending_filter == "true":
         orders = orders.filter(is_received=False)
 
@@ -504,13 +610,13 @@ def buy_history(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    total_orders = buy_record.objects.count()  # นับรายการทั้งหมด ไม่ใช่เฉพาะที่ต้องรับ
+    total_orders = buy_record.objects.count()
 
     context = {
         'user': user,
         'page_obj': page_obj,
-        'total_orders': total_orders,  # ใช้จำนวนทั้งหมด ไม่เปลี่ยนค่าตามการกรอง
-        'pending_items': pending_items_count,  # ใช้ตัวแปรแยกต่างหาก
+        'total_orders': total_orders,
+        'pending_items': pending_items_count,  
         'selected_category': category_filter,
         'pending_filter': pending_filter,
         'buy_history': orders,
@@ -578,46 +684,23 @@ def add_product(request):
     except Users.DoesNotExist:
         return redirect('login')
 
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        descriptions = request.POST.get('descriptions')
-        category = request.POST.get('category')
-        price = request.POST.get('price')
-        type_ = request.POST.get('type')
-        image = request.FILES.get('image')
-
-        product = Product(
-            name=name,
-            descriptions=descriptions,
-            category=category,
-            price=price,
-            type=type_,
-            image=image
-        )
-        product.save()
-        return redirect('add_product')
-
-    selected_category = request.GET.get('category', '')
+    selected_category = request.GET.get('category', '')  # ดึงค่าฟิลเตอร์
 
     products = Product.objects.filter(is_available=True)
     if selected_category:
         products = products.filter(category=selected_category)
 
-    paginator = Paginator(products, 5)  # แสดง 5 รายการต่อหน้า
+    paginator = Paginator(products, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
-    total_items = products.count()
-    rental_items = products.filter(type="เช่ายืม").count()
-    second_hand_items = products.filter(type="มือสอง").count()
 
     return render(request, 'admin/productlist.html', {
         'page_obj': page_obj,
         'user': user,
-        'total_items': total_items,
-        'rental_items': rental_items,
-        'second_hand_items': second_hand_items,
-        'selected_category': selected_category,  # ส่งค่าฟิลเตอร์ไป template
+        'total_items': products.count(),
+        'rental_items': products.filter(type="เช่ายืม").count(),
+        'second_hand_items': products.filter(type="มือสอง").count(),
+        'selected_category': selected_category,  # ส่งค่าไป template
     })
 
 
@@ -674,7 +757,6 @@ def rental_detail(request, pk):
     
     product = get_object_or_404(Product, pk=pk)
     
-    # ดึงข้อมูลการจองสินค้าที่มีสถานะ 'pending' หรือ 'renting'
     rentals = RentalRecord.objects.filter(product=product, status__in=['pending', 'renting'])
     unavailable_periods = [
         {"start_date": rental.get_date.strftime('%Y-%m-%d'), "end_date": rental.return_date.strftime('%Y-%m-%d')}
@@ -693,10 +775,6 @@ def rental_detail(request, pk):
             pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d').date()
             current_date = now().date()
             
-            if pickup_date_obj < current_date:
-                messages.error(request, 'ไม่สามารถเลือกวันที่ย้อนหลังได้')
-                return redirect('rental_detail', pk=pk)
-            
             # Store rental info in session
             request.session['rental_info'] = {
                 'product_id': product.id,
@@ -711,7 +789,7 @@ def rental_detail(request, pk):
     
     return render(request, 'user/rental_detail.html', {
         'product': product,
-        'unavailable_periods': unavailable_periods,  # ส่งช่วงวันที่ไม่ว่างไปยัง template
+        'unavailable_periods': unavailable_periods,  
     })
 
 def rental_confirm(request, pk):
@@ -734,7 +812,7 @@ def rental_confirm(request, pk):
 
     if request.method == 'POST':
         quantity = 1
-        total_price = math.ceil((product.price * rental_duration) / 7)  # ปัดขึ้น
+        total_price = math.ceil((product.price * rental_duration) / 7)
 
         pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
         return_date_obj = pickup_date_obj + timedelta(days=rental_duration)
@@ -755,7 +833,6 @@ def rental_confirm(request, pk):
         rental.update_time_status()
         del request.session['rental_info']
 
-        messages.success(request, 'การเช่าสำเร็จ')
         return redirect('shop')
 
     pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d')
@@ -803,40 +880,11 @@ def save_address(request):
 
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
-def shop_delete_address(request):
-    if 'user_id' not in request.session:
-        return redirect('login')
-
-    try:
-        user = Users.objects.get(id=request.session['user_id'])
-        user.address = ""
-        user.save()
-        return redirect('rental_confirm') 
-    except Users.DoesNotExist:
-        return redirect('login')
-
-def shop_edit_address(request):
-    if 'user_id' not in request.session:
-        return redirect('login')
-
-    try:
-        user = Users.objects.get(id=request.session['user_id'])
-        if request.method == "POST":
-            # อัปเดตที่อยู่
-            user.address = request.POST.get('edit_address_line1', user.address)
-            user.save()
-            return redirect('rental_confirm')  
-    except Users.DoesNotExist:
-        return redirect('login')
-
-    return redirect('rental_confirm')
-
 @shared_task
 def update_rental_records():
     rentals = RentalRecord.objects.filter(status__in=['renting', 'overdue'])
     for rental in rentals:
         rental.update_time_status()
-
 
 
 def shop_detail(request, pk):
@@ -888,27 +936,32 @@ def create_order(request):
             if not all([product_id, amount, total_price, user_id, pickup_date]):
                 return JsonResponse({'status': 'fail', 'message': 'ข้อมูลไม่ครบถ้วน'}, status=400)
 
-            # ตรวจสอบว่าสินค้าและผู้ใช้งานมีอยู่ในระบบหรือไม่
             product = get_object_or_404(Product, id=product_id)
             user = get_object_or_404(Users, id=user_id)
-            order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
-            # บันทึกคำสั่งซื้อ
-            buy_order = buy_record.objects.create(
-                order_code=order_code,
-                product_id=product.id,  
-                amount=amount,
-                buy_date=now(),
-                get_date=pickup_date,
-                total_price=total_price,
-                user_id=user.id  
-            )
+            with transaction.atomic():
+                product = Product.objects.select_for_update().get(id=product_id)
 
-            # อัปเดตสถานะสินค้าให้ถูกจองแล้ว
-            product.is_available = False  
-            product.save()
+                if not product.is_available:
+                    return JsonResponse({'status': 'fail', 'message': 'สินค้าหมดแล้ว'}, status=400)
 
-            return JsonResponse({'status': 'success', 'redirect_url': '/shop/'})
+                order_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+                buy_order = buy_record.objects.create(
+                    order_code=order_code,
+                    product_id=product.id,
+                    amount=amount,
+                    buy_date=now(),
+                    get_date=pickup_date,
+                    total_price=total_price,
+                    user_id=user.id  
+                )
+
+                # อัปเดตสถานะสินค้าให้ถูกจองแล้ว
+                product.is_available = False
+                product.save()
+
+                return JsonResponse({'status': 'success', 'redirect_url': '/shop/'})
         
         except json.JSONDecodeError as e:
             print("JSON Decode Error:", e)
@@ -923,4 +976,5 @@ def create_order(request):
 
 #Exercise function
 def exercise_view(request):
-    return render(request, 'exercise/chest.html')  
+    exercises = Exercise.objects.all()  # ดึงข้อมูลท่าออกกำลังกายทั้งหมด
+    return render(request, 'exercise/chest.html', {'exercises': exercises})

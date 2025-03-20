@@ -1,0 +1,439 @@
+- model: vfit.exercise
+  pk: 1
+  fields:
+    name: "Barbell Bench Press"
+    description: "ท่า Bench Press เป็นท่าฝึกพื้นฐานสำหรับการสร้างกล้ามเนื้อหน้าอก"
+    image: "exercises/Barbell Bench Press.jpg"
+    method: "นอนบนม้านั่ง, จับบาร์เบลด้วยมือกว้างเกินความกว้างของไหล่, ยกบาร์เบลลงไปจนเกือบถึงอก แล้วดันขึ้นไปจนสุดแขน"
+    equipment: "บาร์เบล"
+    sets: "8-12 ครั้ง 4 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 2
+  fields:
+    name: "Incline Barbell Bench Press"
+    description: "ท่า Incline Bench Press เน้นการฝึกกล้ามเนื้อหน้าอกด้านบนมากขึ้น"
+    image: "exercises/incline_bench_press.jpg"
+    method: "นอนบนม้านั่งที่มุม 30-45 องศา, จับบาร์เบลด้วยมือกว้างเกินไหล่, ยกบาร์เบลลงมาจนเกือบถึงอก แล้วดันขึ้นไป"
+    equipment: "บาร์เบล"
+    sets: "8-12 ครั้ง 4 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 3
+  fields:
+    name: "Flat Dumbbell Chest Press"
+    description: "ท่า Dumbbell Chest Press ฝึกกล้ามเนื้อหน้าอกได้อย่างดี"
+    image: "exercises/flat_dumbbell_chest_press.jpg"
+    method: "นอนบนม้านั่ง, ถือดัมเบลในมือทั้งสองข้าง, ยกดัมเบลขึ้นไปเหนือหน้าอก แล้วลดลงจนข้อศอกขนานกับพื้น"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 4
+  fields:
+    name: "Dumbbell Flyes"
+    description: "ท่า Dumbbell Flyes ช่วยยืดขยายกล้ามเนื้อหน้าอก"
+    image: "exercises/dumbbell_flyes.jpg"
+    method: "นอนบนม้านั่ง, ถือดัมเบลในมือทั้งสองข้าง, ขยับแขนออกไปข้างๆ แล้วดึงดัมเบลกลับมาทางหน้าอก"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 4 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 5
+  fields:
+    name: "Chest Dip"
+    description: "ท่า Chest Dip ช่วยเพิ่มความแข็งแรงให้กับหน้าอกและไหล่"
+    image: "exercises/chest_dip.png"
+    method: "ใช้แท่งดิป, ดึงตัวขึ้นลงโดยเกร็งกล้ามเนื้อหน้าอก"
+    equipment: "แท่งดิป"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 6
+  fields:
+    name: "Machine Chest Press"
+    description: "ท่า Machine Chest Press ใช้เครื่องฝึกเพื่อให้การเคลื่อนไหวเป็นธรรมชาติ"
+    image: "exercises/machine_chest_press.jpg"
+    method: "นั่งบนเครื่อง, จับที่จับและดันออกไปให้แขนตรง"
+    equipment: "เครื่อง"
+    sets: "8-12 ครั้ง 4 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 7
+  fields:
+    name: "Incline Dumbbell Press"
+    description: "ท่า Incline Dumbbell Press เน้นการฝึกหน้าอกส่วนบน"
+    image: "exercises/incline_dumbbell_press.jpg"
+    method: "นอนบนม้านั่งที่มีมุม, ถือดัมเบลในมือ, ยกขึ้นจากมุมเอียงไปข้างหน้า"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 8
+  fields:
+    name: "Decline Bench Press"
+    description: "ท่า Decline Bench Press ช่วยฝึกกล้ามเนื้อหน้าอกด้านล่าง"
+    image: "exercises/decline_bench_press.png"
+    method: "นอนบนม้านั่งที่มีมุมลง, จับบาร์เบลด้วยมือกว้างเกินความกว้างของไหล่, ดันบาร์เบลขึ้น"
+    equipment: "บาร์เบล"
+    sets: "8-12 ครั้ง 4 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 9
+  fields:
+    name: "Cable Chest Fly"
+    description: "ท่า Cable Chest Fly ใช้เครื่องเคเบิลในการฝึกกล้ามเนื้อหน้าอก"
+    image: "exercises/cable_chest_fly.jpg"
+    method: "ยืนตรง, ถือที่จับเครื่องเคเบิลไว้ในมือทั้งสองข้าง, เปิดแขนไปข้างๆ และดึงกลับมา"
+    equipment: "เครื่องเคเบิล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 10
+  fields:
+    name: "Pec Deck Machine"
+    description: "ท่า Pec Deck Machine ใช้เครื่องช่วยฝึกกล้ามเนื้อหน้าอก"
+    image: "exercises/pec_deck_machine.jpg"
+    method: "นั่งบนเครื่อง, จับที่จับและดึงแขนมาทางหน้าอก"
+    equipment: "เครื่อง"
+    sets: "8-12 ครั้ง 4 เซต"
+    muscle: "หน้าอก"
+
+- model: vfit.exercise
+  pk: 11
+  fields:
+    name: "Bicep Curl"
+    description: "ท่า Bicep Curl เป็นท่าฝึกที่ช่วยเสริมสร้างกล้ามเนื้อแขน"
+    image: "exercises/bicep_curl.png"
+    method: "ยืนตรง, ถือดัมเบลในมือทั้งสองข้าง, งอแขนและยกดัมเบลขึ้นจนแขนขนานกับพื้น"
+    equipment: "ดัมเบล"
+    sets: "10-15 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 12
+  fields:
+    name: "Triceps Dip"
+    description: "ท่า Triceps Dip ฝึกกล้ามเนื้อแขนส่วนหลัง"
+    image: "exercises/triceps_dip.jpg"
+    method: "ใช้เเก้าอี้หรือม้านั่ง, ดันตัวขึ้นลงโดยใช้แขน"
+    equipment: "ม้านั่ง"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 13
+  fields:
+    name: "Hammer Curl"
+    description: "ท่า Hammer Curl ช่วยฝึกกล้ามเนื้อแขนด้านข้าง"
+    image: "exercises/hammer_curl.jpg"
+    method: "ยืนตรง, ถือดัมเบลในมือทั้งสองข้าง, งอแขนและยกดัมเบลขึ้นโดยให้ฝ่ามือหันเข้าหากัน"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 14
+  fields:
+    name: "Overhead Triceps Extension"
+    description: "ท่า Overhead Triceps Extension เน้นการฝึกกล้ามเนื้อหลังแขน"
+    image: "exercises/overhead_triceps_extension.png"
+    method: "ยืนตรงหรือท่านั่ง, ยกดัมเบลขึ้นเหนือหัว, งอแขนลงไปจนข้อศอกขนานกับพื้น"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 15
+  fields:
+    name: "Concentration Curl"
+    description: "ท่า Concentration Curl เน้นการฝึกกล้ามเนื้อ Biceps แบบโฟกัส"
+    image: "exercises/concentration_curl.png"
+    method: "นั่งบนม้านั่ง, วางแขนข้างที่ถือดัมเบลบนขา, งอแขนและยกดัมเบลขึ้นไป"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 16
+  fields:
+    name: "Preacher Curl"
+    description: "ท่า Preacher Curl ช่วยฝึกกล้ามเนื้อ Biceps โดยเฉพาะ"
+    image: "exercises/preacher_curl.jpg"
+    method: "นั่งบนม้านั่งที่มีพนักพิงแขน, จับบาร์เบลแล้วยกขึ้นลง"
+    equipment: "บาร์เบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 17
+  fields:
+    name: "Triceps Pushdown"
+    description: "ท่า Triceps Pushdown ช่วยฝึกกล้ามเนื้อ Triceps"
+    image: "exercises/triceps_pushdown.png"
+    method: "ยืนตรง, ใช้สายเคเบิลดึงที่จับลงจนแขนตรง"
+    equipment: "เครื่องเคเบิล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 18
+  fields:
+    name: "Zottman Curl"
+    description: "ท่า Zottman Curl ช่วยฝึกทั้ง Biceps และ Forearms"
+    image: "exercises/zottman_curl.jpg"
+    method: "ยืนตรง, จับดัมเบลโดยให้ฝ่ามือหันขึ้น, ยกดัมเบลขึ้น, และหมุนมือให้ฝ่ามือหันลงขณะลดดัมเบล"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 19
+  fields:
+    name: "Cable Bicep Curl"
+    description: "ท่า Cable Bicep Curl ใช้เครื่องเคเบิลในการฝึก Biceps"
+    image: "exercises/cable_bicep_curl.jpg"
+    method: "ยืนตรง, จับที่จับเครื่องเคเบิลแล้วยกขึ้น"
+    equipment: "เครื่องเคเบิล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 20
+  fields:
+    name: "Skull Crusher"
+    description: "ท่า Skull Crusher ช่วยฝึกกล้ามเนื้อ Triceps"
+    image: "exercises/skull_crusher.jpg"
+    method: "นอนบนม้านั่ง, จับบาร์เบลด้วยมือห่างกัน, ลดบาร์เบลลงไปข้างหน้าหัวแล้วดันขึ้น"
+    equipment: "บาร์เบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "แขน"
+
+- model: vfit.exercise
+  pk: 41
+  fields:
+    name: "Crunch"
+    description: "ท่า Crunch เป็นท่าฝึกกล้ามเนื้อหน้าท้อง"
+    image: "exercises/crunch.jpg"
+    method: "นอนหงาย, งอเข่าขึ้น, ยกตัวส่วนบนขึ้นมาให้กล้ามเนื้อหน้าท้องเกร็ง"
+    equipment: "ไม่มี"
+    sets: "15-20 ครั้ง 3 เซต"
+    muscle: "หน้าท้อง"
+
+- model: vfit.exercise
+  pk: 42
+  fields:
+    name: "Plank"
+    description: "ท่า Plank เป็นท่าฝึกแกนกลางลำตัว"
+    image: "exercises/plank.jpg"
+    method: "อยู่ในท่าดันพื้นแล้วเกร็งกล้ามเนื้อหน้าท้องให้มั่นคง"
+    equipment: "ไม่มี"
+    sets: "เกิน 30 วินาที 3 เซต"
+    muscle: "หน้าท้อง"
+
+- model: vfit.exercise
+  pk: 43
+  fields:
+    name: "Leg Raise"
+    description: "ท่า Leg Raise ช่วยฝึกกล้ามเนื้อหน้าท้องส่วนล่าง"
+    image: "exercises/leg_raise.png"
+    method: "นอนหงาย, ยกขาให้ตรงขึ้นสูง แล้วค่อยๆ ลดลงจนขนานกับพื้น"
+    equipment: "ไม่มี"
+    sets: "12-15 ครั้ง 3 เซต"
+    muscle: "หน้าท้อง"
+
+- model: vfit.exercise
+  pk: 44
+  fields:
+    name: "Russian Twist"
+    description: "ท่า Russian Twist ช่วยฝึกกล้ามเนื้อหน้าท้องด้านข้าง"
+    image: "exercises/russian_twist.jpg"
+    method: "นั่งบนพื้น, ยกขาเล็กน้อยและหมุนตัวไปทางขวาและซ้าย"
+    equipment: "ไม่มี"
+    sets: "15-20 ครั้ง 3 เซต"
+    muscle: "หน้าท้อง"
+
+- model: vfit.exercise
+  pk: 45
+  fields:
+    name: "Mountain Climbers"
+    description: "ท่า Mountain Climbers ช่วยเสริมกล้ามเนื้อหน้าท้องและเพิ่มความแข็งแรง"
+    image: "exercises/mountain_climbers.jpg"
+    method: "อยู่ในท่าดันพื้น, ดึงเข่าขึ้นมาที่หน้าอกสลับข้างกันอย่างรวดเร็ว"
+    equipment: "ไม่มี"
+    sets: "30-45 วินาที 3 เซต"
+    muscle: "หน้าท้อง"
+
+- model: vfit.exercise
+  pk: 46
+  fields:
+    name: "Squat"
+    description: "ท่า Squat ช่วยฝึกกล้ามเนื้อขาและสะโพก"
+    image: "exercises/squat.jpg"
+    method: "ยืนให้ขากว้างกว่าไหล่, ถือดัมเบลยกไว้ระหว่างอก, งอเข่าลงจนต้นขาขนานกับพื้นแล้วดันตัวขึ้น"
+    equipment: "ดัมเบล"
+    sets: "10-15 ครั้ง 3 เซต"
+    muscle: "ขา"
+
+- model: vfit.exercise
+  pk: 47
+  fields:
+    name: "Lunges"
+    description: "ท่า Lunges ช่วยฝึกกล้ามเนื้อขาและสะโพก"
+    image: "exercises/lunges.jpg"
+    method: "ยืนตรง, ก้าวขาหนึ่งข้างไปข้างหน้าแล้วงอเข่าให้ต่ำลงแล้วกลับมายืนตรง"
+    equipment: "ไม่มี"
+    sets: "10-12 ครั้งต่อข้าง 3 เซต"
+    muscle: "ขา"
+
+- model: vfit.exercise
+  pk: 48
+  fields:
+    name: "Leg Press"
+    description: "ท่า Leg Press ใช้เครื่องฝึกในการเพิ่มความแข็งแรงขา"
+    image: "exercises/leg_press.png"
+    method: "นั่งบนเครื่อง, วางเท้าบนแผ่นเหล็กแล้วดันขึ้นไปจนขาตรง"
+    equipment: "เครื่อง Leg Press"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "ขา"
+
+- model: vfit.exercise
+  pk: 49
+  fields:
+    name: "Romanian Deadlift"
+    description: "ท่า Romanian Deadlift เน้นการฝึกกล้ามเนื้อขาหลังและสะโพก"
+    image: "exercises/romanian_deadlift.png"
+    method: "ยืนตรง, ถือดัมเบลในมือ, งอสะโพกและลดดัมเบลลงจนเกือบถึงพื้นแล้วดึงกลับขึ้น"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "ขา"
+
+- model: vfit.exercise
+  pk: 50
+  fields:
+    name: "Calf Raises"
+    description: "ท่า Calf Raises เน้นการฝึกกล้ามเนื้อหน้าแข้ง"
+    image: "exercises/calf_raises.jpg"
+    method: "ยืนตรง, ยกส้นเท้าขึ้นจนสุด แล้วลดลงให้ช้า"
+    equipment: "ไม่มี"
+    sets: "15-20 ครั้ง 3 เซต"
+    muscle: "ขา"
+
+- model: vfit.exercise
+  pk: 51
+  fields:
+    name: "Pull-Up"
+    description: "ท่า Pull-Up เป็นท่าฝึกที่ดีสำหรับกล้ามเนื้อหลัง"
+    image: "exercises/pull_up.jpg"
+    method: "จับบาร์ดึงตัวขึ้นจนคางอยู่เหนือบาร์ แล้วค่อยๆ ลดตัวลง"
+    equipment: "บาร์"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หลัง"
+
+- model: vfit.exercise
+  pk: 52
+  fields:
+    name: "Lat Pulldown"
+    description: "ท่า Lat Pulldown ฝึกกล้ามเนื้อหลังส่วนบน"
+    image: "exercises/lat_pulldown.png"
+    method: "นั่งบนเครื่อง, จับที่จับเครื่องแล้วดึงลงจนคางอยู่เหนือบาร์"
+    equipment: "เครื่อง Lat Pulldown"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หลัง"
+
+- model: vfit.exercise
+  pk: 53
+  fields:
+    name: "Bent-Over Row"
+    description: "ท่า Bent-Over Row ช่วยฝึกกล้ามเนื้อหลังส่วนกลาง"
+    image: "exercises/bent_over_row.jpg"
+    method: "ยืนตรง, ก้มตัวไปข้างหน้าและถือดัมเบล, ดึงดัมเบลขึ้นจนข้อศอกตรงกับลำตัว"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หลัง"
+
+- model: vfit.exercise
+  pk: 54
+  fields:
+    name: "T-Bar Row"
+    description: "ท่า T-Bar Row ช่วยเพิ่มความแข็งแรงให้กับกล้ามเนื้อหลังส่วนกลาง"
+    image: "exercises/t_bar_row.png"
+    method: "ใช้เครื่อง T-Bar, จับที่จับแล้วดึงขึ้นจนข้อศอกเกือบขนานกับพื้น"
+    equipment: "เครื่อง T-Bar"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "หลัง"
+
+- model: vfit.exercise
+  pk: 55
+  fields:
+    name: "Deadlift"
+    description: "ท่า Deadlift เป็นท่าฝึกที่ช่วยเสริมสร้างกล้ามเนื้อหลังและขา"
+    image: "exercises/deadlift.jpg"
+    method: "ยืนตรง, จับบาร์เบลที่พื้น, ยืนขึ้นโดยใช้หลังและขาในการยกบาร์เบล"
+    equipment: "บาร์เบล"
+    sets: "6-10 ครั้ง 4 เซต"
+    muscle: "หลัง"
+
+- model: vfit.exercise
+  pk: 56
+  fields:
+    name: "Overhead Press"
+    description: "ท่า Overhead Press เป็นท่าฝึกที่ดีสำหรับกล้ามเนื้อไหล่"
+    image: "exercises/overhead_press.jpg"
+    method: "ยืนตรง, ถือบาร์เบลไว้ที่ไหล่แล้วดันขึ้นเหนือหัวจนแขนตรง"
+    equipment: "บาร์เบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "ไหล่"
+
+- model: vfit.exercise
+  pk: 57
+  fields:
+    name: "Lateral Raise"
+    description: "ท่า Lateral Raise ช่วยฝึกกล้ามเนื้อไหล่ด้านข้าง"
+    image: "exercises/lateral_raise.jpg"
+    method: "ยืนตรง, ถือดัมเบลทั้งสองข้าง, ยกแขนขึ้นด้านข้างจนขนานกับพื้น"
+    equipment: "ดัมเบล"
+    sets: "12-15 ครั้ง 3 เซต"
+    muscle: "ไหล่"
+
+- model: vfit.exercise
+  pk: 58
+  fields:
+    name: "Front Raise"
+    description: "ท่า Front Raise ช่วยฝึกกล้ามเนื้อไหล่ด้านหน้า"
+    image: "exercises/front_raise.jpg"
+    method: "ยืนตรง, ถือดัมเบลทั้งสองข้าง, ยกแขนไปข้างหน้าจนขนานกับพื้น"
+    equipment: "ดัมเบล"
+    sets: "12-15 ครั้ง 3 เซต"
+    muscle: "ไหล่"
+
+- model: vfit.exercise
+  pk: 59
+  fields:
+    name: "Reverse Fly"
+    description: "ท่า Reverse Fly ช่วยฝึกกล้ามเนื้อไหล่ด้านหลัง"
+    image: "exercises/reverse_fly.jpg"
+    method: "นั่งหรือยืน, เอียงตัวไปข้างหน้าแล้วยกดัมเบลทั้งสองข้างออกด้านข้าง"
+    equipment: "ดัมเบล"
+    sets: "12-15 ครั้ง 3 เซต"
+    muscle: "ไหล่"
+
+- model: vfit.exercise
+  pk: 60
+  fields:
+    name: "Arnold Press"
+    description: "ท่า Arnold Press ช่วยฝึกกล้ามเนื้อไหล่โดยใช้การหมุนมือในขณะดันดัมเบล"
+    image: "exercises/arnold_press.jpg"
+    method: "นั่งหรือยืน, ถือดัมเบลที่ไหล่แล้วหมุนข้อมือไปด้านนอกขณะยกดัมเบลขึ้น"
+    equipment: "ดัมเบล"
+    sets: "8-12 ครั้ง 3 เซต"
+    muscle: "ไหล่"
