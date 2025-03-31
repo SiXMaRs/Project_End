@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 text-white pt-20">
+    {% include 'navbar.html' %} 
+
+    <nav class="bg-[#a58c36] text-white p-4 flex justify-center items-center">
+
+        <div class="lg:hidden flex justify-start">
+            <button id="hamburger-btn" class="text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="hidden lg:flex text-xl space-x-32">
+            <a href="?muscle=หน้าอก" class="hover:text-gray-300 {% if selected_muscle == 'หน้าอก' %}underline{% endif %}">หน้าอก</a>
+            <a href="?muscle=แขน" class="hover:text-gray-300 {% if selected_muscle == 'แขน' %}underline{% endif %}">แขน</a>
+            <a href="?muscle=ขา" class="hover:text-gray-300 {% if selected_muscle == 'ขา' %}underline{% endif %}">ขา</a>
+            <a href="?muscle=ไหล่" class="hover:text-gray-300 {% if selected_muscle == 'ไหล่' %}underline{% endif %}">หัวไหล่</a>
+            <a href="?muscle=หลัง" class="hover:text-gray-300 {% if selected_muscle == 'หลัง' %}underline{% endif %}">หลัง</a>
+            <a href="?muscle=หน้าท้อง" class="hover:text-gray-300 {% if selected_muscle == 'หน้าท้อง' %}underline{% endif %}">หน้าท้อง</a>
+        </div>
+
+        <div id="hamburger-menu" class="lg:hidden hidden absolute top-16 left-0 w-full bg-[#a58c36] p-4">
+            <a href="?muscle=หน้าอก" class="block text-lg py-2 hover:text-gray-300 {% if selected_muscle == 'หน้าอก' %}underline{% endif %}">หน้าอก</a>
+            <a href="?muscle=แขน" class="block text-lg py-2 hover:text-gray-300 {% if selected_muscle == 'แขน' %}underline{% endif %}">แขน</a>
+            <a href="?muscle=ขา" class="block text-lg py-2 hover:text-gray-300 {% if selected_muscle == 'ขา' %}underline{% endif %}">ขา</a>
+            <a href="?muscle=ไหล่" class="block text-lg py-2 hover:text-gray-300 {% if selected_muscle == 'ไหล่' %}underline{% endif %}">หัวไหล่</a>
+            <a href="?muscle=หลัง" class="block text-lg py-2 hover:text-gray-300 {% if selected_muscle == 'หลัง' %}underline{% endif %}">หลัง</a>
+            <a href="?muscle=หน้าท้อง" class="block text-lg py-2 hover:text-gray-300 {% if selected_muscle == 'หน้าท้อง' %}underline{% endif %}">หน้าท้อง</a>
+        </div>
+    </nav>
+
+    <!-- Exercises -->
+    <div class="container mx-auto px-4">
+        {% for exercise in exercises %}
+        <div class="exercise-card mb-2 p-6">
+            <h3 class="text-3xl font-semibold mb-2 text-center">{{ exercise.name }}</h3>
+            
+            <!-- Image Section (Keep as it is for normal screen size, responsive for mobile) -->
+            <div class="flex justify-center mb-4">
+                <img src="{{ exercise.image.url }}" alt="{{ exercise.name }}" class="rounded-lg w-full max-w-md">
+            </div>
+            <p class="text-lg text-center mb-4">{{ exercise.description }}</p>
+            <div class="space-y-2 md:space-y-0  text-center">
+                <div class="mt-4 md:mb-4 ">
+                    <h4 class="text-xl text-yellow-400 font-semibold ">วิธีการ:</h4>
+                    <p class=" ">{{ exercise.method }}</p>
+                </div>
+                <div class="mt-4 md:mb-4 ">
+                    <h4 class="text-xl text-yellow-400 font-semibold " >อุปกรณ์:</h4>
+                    <p class=" ">{{ exercise.equipment }}</p>
+                </div>
+                <div class="mt-4 md:mb-4">
+                    <h4 class="text-xl text-yellow-400 font-semibold">จำนวนแนะนำ:</h4>
+                    <p class="">{{ exercise.sets }}</p>
+                </div>
+                <div class="mt-4 md:mb-4">
+                    <h4 class="text-xl text-yellow-400 font-semibold">กล้ามเนื้อที่ฝึก:</h4>
+                    <p class="">{{ exercise.muscle }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>  
+</div>
+
+<script>
+    document.getElementById('hamburger-btn').addEventListener('click', function() {
+        const menu = document.getElementById('hamburger-menu');
+        menu.classList.toggle('hidden');
+    });
+</script>
+{% endblock %}

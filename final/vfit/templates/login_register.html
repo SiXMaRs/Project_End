@@ -29,14 +29,29 @@
                       </a>
                       <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
-                        <div class="form-group">
-                          <input type="email" name="email" class="form-style" placeholder="อีเมล" required>
-                          <i class="input-icon uil uil-at"></i>
-                        </div> 
-                        <div class="form-group mt-4">
-                          <input type="password" name="password" class="form-style" placeholder="รหัสผ่าน" required>
-                          <i class="input-icon uil  uil-lock-alt"></i>
+                        
+                        <!-- อีเมล -->
+                        <div class="form-group2 mt-2">
+                            <input type="email" name="email" class="form-style" placeholder="อีเมล" required>
+                            <i class="input-icon uil uil-at"></i>
+                            {% if error_login_email %}
+                                <div class="text-red-500 text-sm">
+                                    <p>{{ error_login_email }}</p>
+                                </div>
+                            {% endif %}
                         </div>
+                    
+                        <!-- รหัสผ่าน -->
+                        <div class="form-group2 mt-2">
+                            <input type="password" name="password" class="form-style" placeholder="รหัสผ่าน" required>
+                            <i class="input-icon uil uil-lock-alt"></i>
+                            {% if error_login_password %}
+                                <div class="text-red-500 text-sm">
+                                    <p>{{ error_login_password }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    
                         <button type="submit" class="btn mt-4">เข้าสู่ระบบ</button>
                       </form>
                       <p class="mb-0 mt-4 text-center">
@@ -46,7 +61,6 @@
                   </div>
                 </div>
 
-                <!-- Sign Up Form -->
                 <div class="card-back">
                   <div class="center-wrap2">
                     <div class="section text-center">
@@ -55,29 +69,66 @@
                       </a>
                       <form method="post" action="{% url 'register' %}">
                         {% csrf_token %}
-                        <div class="form-group2">
-                          <input type="text" name="full_name" class="form-style" placeholder="ชื่อผู้ใช้งาน" required>
-                          <i class="input-icon uil uil-user"></i>
+
+                        <div class="form-group2 mt-2">
+                            <input type="text" name="full_name" class="form-style" placeholder="ชื่อผู้ใช้งาน" required>
+                            <i class="input-icon uil uil-user"></i>
                         </div>  
+
                         <div class="form-group2 mt-2">
-                          <input type="tel" name="phone" class="form-style" placeholder="เบอร์โทรศัพท์" 
-                                 required maxlength="10" pattern="[0-9]{10}" title="กรุณากรอกหมายเลขโทรศัพท์ 10 หลัก">
-                          <i class="input-icon uil uil-phone"></i>
-                      </div>
-                        <div class="form-group2 mt-2">
-                          <input type="email" name="email" class="form-style" placeholder="อีเมล" required>
-                          <i class="input-icon uil uil-at"></i>
+                            <input type="tel" name="phone" class="form-style" placeholder="เบอร์โทรศัพท์" 
+                                   required maxlength="10" pattern="[0-9]{10}" title="กรุณากรอกหมายเลขโทรศัพท์ 10 หลัก">
+                            <i class="input-icon uil uil-phone"></i>
+                            {% if form.phone.errors %}
+                                <div class="text-red-500 text-sm">
+                                    {% for error in form.phone.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
+                    
+                        <!-- อีเมล -->
                         <div class="form-group2 mt-2">
-                          <input type="password" name="password" class="form-style" placeholder="รหัสผ่าน" required>
-                          <i class="input-icon uil uil-lock-alt"></i>
+                            <input type="email" name="email" class="form-style" placeholder="อีเมล" required>
+                            <i class="input-icon uil uil-at"></i>
+                            {% if form.email.errors %}
+                                <div class="text-red-500 text-sm">
+                                    {% for error in form.email.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
+                    
+                        <!-- รหัสผ่าน -->
                         <div class="form-group2 mt-2">
-                          <input type="password" name="password_confirm" class="form-style" placeholder="ยืนยันรหัสผ่าน" required>
-                          <i class="input-icon uil uil-lock-alt"></i>
+                            <input type="password" name="password" class="form-style" placeholder="รหัสผ่าน" required minlength="8">
+                            <i class="input-icon uil uil-lock-alt"></i>
+                            {% if form.password.errors %}
+                                <div class="text-red-500 text-sm">
+                                    {% for error in form.password.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
+                    
+                        <!-- ยืนยันรหัสผ่าน -->
+                        <div class="form-group2 mt-2">
+                            <input type="password" name="password_confirm" class="form-style" placeholder="ยืนยันรหัสผ่าน" required>
+                            <i class="input-icon uil uil-lock-alt"></i>
+                        </div>
+                        {% if form.password_confirm.errors %}
+                            <div class="text-red-500 text-sm">
+                                {% for error in form.password_confirm.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
                         <button type="submit" class="btn mt-4">ลงทะเบียน</button>
-                      </form>
+                    </form>
                     </div>
                   </div>
                 </div>

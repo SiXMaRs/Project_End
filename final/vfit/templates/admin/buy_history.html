@@ -115,7 +115,6 @@
                     </a>
                 {% endif %}
 
-                <!-- เลขหน้าปัจจุบัน -->
                 <span class="px-3 py-2 text-white">
                     {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
                 </span>
@@ -139,13 +138,13 @@
         <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl" onclick="closeUserDetails()">✖</button>
         
         <div class="flex ml-16">
-            <!-- ส่วนรูปผู้ใช้งาน -->
+            <!-- รูปผู้ใช้งาน -->
             <div class="flex-shrink-0 mr-8">
                 <img id="popup-avatar" src="" alt="Avatar" 
                      class="w-40 h-40 rounded-full border border-gray-300 shadow-lg">
             </div>
 
-            <!-- ส่วนข้อมูลผู้ใช้ -->
+            <!-- ข้อมูลผู้ใช้ -->
             <div class="flex-grow">
                 <p id="popup-full-name" class="text-2xl font-bold mb-4">ชื่อผู้ใช้: -</p>
                 <p id="popup-email" class="text-lg text-gray-700 mb-3">อีเมล: -</p>
@@ -154,7 +153,7 @@
             </div>
         </div>
 
-        <!-- ส่วนที่อยู่ -->
+        <!-- ที่อยู่ -->
         <div class="mt-6 border-t pt-4">
             <p id="popup-address" class="text-lg text-center text-gray-700">ที่อยู่: -</p>
         </div>
@@ -229,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let actionUrl = ""; // เก็บ URL ที่ต้องการส่งไป
 
-        // กดปุ่ม "มารับแล้ว" → เปิดป๊อปอัพยืนยัน
+        // กดปุ่ม "มารับแล้ว" 
         document.querySelectorAll('.confirm-received-btn').forEach(button => {
             button.addEventListener('click', function() {
                 actionUrl = this.getAttribute('data-url');
@@ -237,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // กดปุ่ม "ไม่มารับ" → เปิดป๊อปอัพยืนยัน
+        // กดปุ่ม "ไม่มารับ" 
         document.querySelectorAll('.confirm-not-received-btn').forEach(button => {
             button.addEventListener('click', function() {
                 actionUrl = this.getAttribute('data-url');
@@ -245,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // เมื่อกด "ใช่" → เปลี่ยนหน้าไปยัง URL ที่กำหนด
+        // เมื่อกด "ใช่" 
         confirmReceivedYes.addEventListener('click', () => {
             window.location.href = actionUrl;
         });
@@ -253,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = actionUrl;
         });
 
-        // เมื่อกด "ยกเลิก" → ปิดป๊อปอัพ
+        // เมื่อกด "ยกเลิก"ปิดป๊อปอัพ
         confirmReceivedNo.addEventListener('click', () => {
             confirmReceivedPopup.classList.add('hidden');
         });

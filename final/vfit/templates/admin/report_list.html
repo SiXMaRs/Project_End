@@ -7,7 +7,6 @@
     
 
     <div class="flex-1 mt-20 ml-64">
-        <!-- Summary Cards -->
         <div class="grid grid-cols-2 gap-4 px-6 py-4">
             <div class="bg-white text-black text-center py-4 rounded-lg">
                 <p class="text-lg">รายการแจ้งปัญหา:</p>
@@ -28,7 +27,6 @@
             </button>
         </div>
 
-        <!-- Report List Table -->
         <div class="px-6 py-4">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -66,7 +64,7 @@
                             </a>
                         </td>
                         <td class="p-4">{{ report.report_date|date:"d/m/Y" }}</td>
-                        <td class="p-4">{{ report.issue_description }}</td>
+                        <td class="p-4">{{ report.issue_description|truncatechars:20 }}</td>
                         <td class="p-4">
                             {% if report.status == 'in_progress' %}
                                 <form method="POST" class="inline-block">
@@ -78,6 +76,10 @@
                             {% else %}
                                 <span class="text-green-500">สำเร็จ</span>
                             {% endif %}
+                        </td>
+                        <td class="p-4">
+                            <button onclick="showReportDetails('{{ report.rental_code.product.name }}', '{{ report.issue_description }}')"
+                                class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">ดูรายละเอียด</button>
                         </td>
                     </tr>
                     {% empty %}
@@ -125,10 +127,20 @@
     </div>
 </div>
 
+
+<div id="reportDetailPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg w-4/5 max-w-2xl p-8 relative">
+        <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl" onclick="closeReportDetails()">✖</button>
+        <h2 class="text-2xl font-bold mb-4">รายละเอียดการแจ้งปัญหา</h2>
+        <p id="popup-product-name" class="text-xl font-semibold mb-4">ชื่ออุปกรณ์: -</p>
+        <textarea id="popup-issue-description" class="w-full p-4 border border-gray-300 rounded" rows="6" readonly></textarea>
+    </div>
+</div>
+
 <script>
     function openConfirmationPopup(orderCode) {
-        document.getElementById('hidden-order-code').value = orderCode; // ใส่ order_code ใน input
-        document.getElementById('confirmation-popup').classList.remove('hidden'); // แสดงป๊อปอัป
+        document.getElementById('hidden-order-code').value = orderCode; 
+        document.getElementById('confirmation-popup').classList.remove('hidden'); 
     }
 
     function showUserDetails(fullName, email, telNumber, sex, address, avatar) {
@@ -149,6 +161,17 @@
 
     function closeUserDetails() {
         document.getElementById('user-detail-popup').classList.add('hidden');
+    }
+
+
+    function showReportDetails(productName, issueDescription) {
+        document.getElementById('popup-product-name').textContent = `ชื่ออุปกรณ์: ${productName}`;
+        document.getElementById('popup-issue-description').textContent = `รายละเอียดปัญหา: ${issueDescription}`;
+        document.getElementById('reportDetailPopup').classList.remove('hidden');
+    }
+
+    function closeReportDetails() {
+        document.getElementById('reportDetailPopup').classList.add('hidden');
     }
 </script>
 {% endblock %}

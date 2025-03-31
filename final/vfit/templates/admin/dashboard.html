@@ -3,7 +3,6 @@
 {% block content %}
 <div class="text-gray-100 font-poppins min-h-screen pt-20">
     <div class="flex">
-        <!-- Sidebar -->
         {% include 'admin/nav.html' %}
         <!-- Main Content -->
         <div class="text-black w-3/4 p-4 ml-80 mb-6 mt-8">
@@ -12,8 +11,8 @@
                     <label for="incomeTimeRange" class="text-lg text-white">เลือกช่วงเวลา:</label>
                     <select id="incomeTimeRange" name="range" class="border rounded px-2 py-1 text-black" onchange="this.form.submit()">
                         <option value="daily" {% if range_type == "daily" %}selected{% endif %}>รายวัน</option>
-                        <option value="weekly" {% if range_type == "weekly" %}selected{% endif %}>รายสัปดาห์</option>
-                        <option value="monthly" {% if range_type == "monthly" %}selected{% endif %}>รายเดือน</option>
+                        <option value="weekly" {% if range_type == "weekly" %}selected{% endif %}>ทั้งสัปดาห์</option>
+                        <option value="monthly" {% if range_type == "monthly" %}selected{% endif %}>12เดือน</option>
                     </select>
                 </div>
                 {% if range_type == "daily" %}
@@ -79,7 +78,7 @@
                 </div>
             </div>
 
-            <!-- Charts -->
+            <!-- กราฟ -->
             <div class="grid grid-cols-2 gap-8">
                 <div class="bg-white p-4 rounded-lg shadow-md">
                     <div class="flex justify-between mb-4">
@@ -113,7 +112,7 @@
         try {
             {% if range_type == "daily" %}
                 const dailyData = JSON.parse('{{ daily_data|safe }}');
-                console.log("📌 Debug: Daily Data", dailyData); // ✅ ตรวจสอบข้อมูล
+                console.log("Debug: Daily Data", dailyData); // ✅ ตรวจสอบข้อมูล
 
                 chartLabels = [dailyData.label];
                 rentalIncomeData = [dailyData.rental_income];
@@ -123,9 +122,9 @@
 
             {% elif range_type == "weekly" %}
                 const weeklyData = JSON.parse('{{ weekly_data|safe }}' || "[]");
-                if (!weeklyData.length) throw new Error("❌ ไม่มีข้อมูลรายสัปดาห์");
+                if (!weeklyData.length) throw new Error("ไม่มีข้อมูลรายสัปดาห์");
 
-                console.log("📌 Debug: Weekly Data", weeklyData);
+                console.log("Debug: Weekly Data", weeklyData);
                 weeklyData.forEach(item => {
                     chartLabels.push(item.label);
                     rentalIncomeData.push(item.rental_income);
@@ -136,9 +135,9 @@
 
             {% elif range_type == "monthly" %}
                 const monthlyData = JSON.parse('{{ monthly_data|safe }}' || "[]");
-                if (!monthlyData.length) throw new Error("❌ ไม่มีข้อมูลรายเดือน");
+                if (!monthlyData.length) throw new Error("ไม่มีข้อมูลรายเดือน");
 
-                console.log("📌 Debug: Monthly Data", monthlyData);
+                console.log("Debug: Monthly Data", monthlyData);
                 monthlyData.forEach(item => {
                     chartLabels.push(item.label);
                     rentalIncomeData.push(item.rental_income);
@@ -151,7 +150,7 @@
             console.error("🚨 Error Parsing JSON:", error);
         }
 
-        // ✅ กราฟรายได้
+        // กราฟรายได้
         new Chart(ctx1, {
             type: 'bar',
             data: {
@@ -164,7 +163,7 @@
             options: { responsive: true, scales: { y: { beginAtZero: true } } }
         });
 
-        // ✅ กราฟจำนวนรายการเช่า-ซื้อ (แก้ไขให้แน่ใจว่ามีค่า)
+        // กราฟจำนวนรายการเช่า-ซื้อ (แก้ไขให้แน่ใจว่ามีค่า)
         if (rentalOrdersData.length > 0 && buyOrdersData.length > 0) {
             new Chart(ctx2, {
                 type: 'line',
@@ -178,7 +177,7 @@
                 options: { responsive: true, scales: { y: { beginAtZero: true } } }
             });
         } else {
-            console.warn("⚠️ ไม่มีข้อมูลสำหรับแสดงผลกราฟจำนวนรายการเช่า-ซื้อ");
+            console.warn("ไม่มีข้อมูลสำหรับแสดงผลกราฟจำนวนรายการเช่า-ซื้อ");
         }
     });
 </script>

@@ -27,8 +27,14 @@ def register(request):
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
 
+        if len(password) < 8:
+            return render(request, 'login_register.html', {'error_register': 'รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร'})
+
         if password != password_confirm:
             return render(request, 'login_register.html', {'error_register': 'Passwords do not match!'})
+
+        if len(phone) != 10:
+            return render(request, 'login_register.html', {'error_register': 'เบอร์โทรศัพท์ต้องมี 10 หลัก'})
 
         if Users.objects.filter(email=email).exists():
             return render(request, 'login_register.html', {'error_register': 'Email already exists!'})
@@ -55,9 +61,12 @@ def login(request):
                 request.session['user_id'] = user.id
                 return redirect('main')  
             else:
-                return render(request, 'login_register.html', {'error_login': 'รหัสผ่านไม่ถูกต้อง'})
+                # รหัสผ่านผิด
+                return render(request, 'login_register.html', {'error_login_password': 'รหัสผ่านไม่ถูกต้อง'})
+
         except Users.DoesNotExist:
-            return render(request, 'login_register.html', {'error_login': 'ไม่พบผู้ใช้ในระบบ'})
+            # ไม่พบผู้ใช้ในระบบ
+            return render(request, 'login_register.html', {'error_login_email': 'ไม่พบผู้ใช้ในระบบ'})
 
     return render(request, 'login_register.html')
 
@@ -134,7 +143,7 @@ def reset_password_confirm(request):
             messages.success(request, 'Your password has been reset successfully!')
 
             print("Redirecting to login page")  # Debug
-            return redirect('login')  # Redirect ไปหน้า Login หลังจากเปลี่ยนรหัสผ่านสำเร็จ
+            return redirect('login') 
 
         except Users.DoesNotExist:
             messages.error(request, 'Something went wrong. Try again!')
@@ -267,7 +276,7 @@ def edit_address(request):
             # อัปเดตที่อยู่
             user.address = request.POST.get('edit_address_line1', user.address)
             user.save()
-            return redirect('profile')  # กลับไปหน้าโปรไฟล์หลังแก้ไขที่อยู่
+            return redirect('profile')  
     except Users.DoesNotExist:
         return redirect('login')
 
@@ -299,7 +308,7 @@ def user_rental_history(request):
     elif status == 'overdue':
         rentals = rentals.filter(status__in=['returned', 'overdue'])
 
-    # ✅ ใช้ Paginator (5 รายการต่อหน้า)
+    # ใช้ Paginator (5 รายการต่อหน้า)
     paginator = Paginator(rentals, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -332,7 +341,6 @@ def user_buy_history(request):
     if status == 'pending':  # อุปกรณ์ที่ยังไม่ได้รับ
         buy_history = buy_history.filter(is_received=False)
 
-    # ใช้ Paginator เพื่อแบ่งหน้า
     paginator = Paginator(buy_history, 5)  # 5 รายการต่อหน้า
     page_number = request.GET.get('page')  # กำหนดเลขหน้า
     page_obj = paginator.get_page(page_number)
@@ -369,6 +377,13 @@ def report_issue(request):
         try:
             rental_record = RentalRecord.objects.get(order_code=rental_code_id)
 
+            # ตรวจสอบว่าอุปกรณ์นี้มีการแจ้งปัญหาก่อนหน้านี้และยังคงอยู่ในสถานะ "กำลังดำเนินการ"
+            existing_report = Report.objects.filter(rental_code=rental_record, status='in_progress').first()
+            if existing_report:
+                messages.error(request, 'อุปกรณ์ชิ้นนี้ได้ถูกแจ้งปัญหากำลังดำเนินการอยู่แล้ว')
+                return redirect('report_issue')
+
+            # ถ้าไม่มีการแจ้งปัญหาหรือสถานะเป็น completed ให้สร้างรายงานใหม่
             Report.objects.create(
                 rental_code=rental_record,
                 issue_description=issue_description,
@@ -396,7 +411,6 @@ def report_issue(request):
         'user': user,
     }
     return render(request, 'user/report.html', context)
-
 
 
 # admin function
@@ -497,14 +511,14 @@ def dashboard(request):
                 'buy_orders': buy_orders_month
             })
 
-    total_reports = Report.objects.count()
+    total_reports = Report.objects.filter(status='in_progress').count()
 
     daily_data = json.dumps({
     "label": selected_date.strftime("%d/%m/%Y"),
     "rental_income": rental_income,
     "buy_income": buy_income,
-    "rental_orders": rental_orders if rental_orders else 0,  # ✅ ถ้าไม่มี ให้กำหนดค่าเป็น 0
-    "buy_orders": buy_orders if buy_orders else 0  # ✅ ถ้าไม่มี ให้กำหนดค่าเป็น 0
+    "rental_orders": rental_orders if rental_orders else 0,  
+    "buy_orders": buy_orders if buy_orders else 0  
     })
 
     context = {
@@ -517,7 +531,7 @@ def dashboard(request):
         'rental_orders': rental_orders,
         'buy_orders': buy_orders,
         'total_reports': total_reports,
-        'daily_data': daily_data,  # ✅ ส่ง daily_data เป็น JSON
+        'daily_data': daily_data,  
         'weekly_data': json.dumps(weekly_data) if range_type == "weekly" else "[]",
         'monthly_data': json.dumps(monthly_data) if range_type == "monthly" else "[]",
     }
@@ -547,6 +561,11 @@ def admin_rental_list(request):
 
     status = request.GET.get('status', 'all')
     rental_records = RentalRecord.objects.select_related('product', 'user').all()
+
+    rentals = RentalRecord.objects.filter(user_id=user_id).select_related('product')
+
+    for rental in rentals:
+        rental.update_time_status()
 
     if status == 'renting':
         rental_records = rental_records.filter(status='renting')
@@ -684,9 +703,10 @@ def add_product(request):
     except Users.DoesNotExist:
         return redirect('login')
 
-    selected_category = request.GET.get('category', '')  # ดึงค่าฟิลเตอร์
+    selected_category = request.GET.get('category', '')  
 
     products = Product.objects.filter(is_available=True)
+ 
     if selected_category:
         products = products.filter(category=selected_category)
 
@@ -694,13 +714,39 @@ def add_product(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        price = request.POST.get('price')
+        descriptions = request.POST.get('descriptions')
+        category = request.POST.get('category')
+        type = request.POST.get('type')
+        image = request.FILES.get('image') 
+
+        # ตรวจสอบว่ามีข้อมูลครบถ้วนหรือไม่
+        if not all([name, price, descriptions, category, type]):
+            messages.error(request, "กรุณากรอกข้อมูลให้ครบถ้วน")
+            return redirect('add_product')
+
+        product = Product.objects.create(
+            name=name,
+            price=price,
+            descriptions=descriptions,
+            category=category,
+            type=type,
+            image=image,
+            is_available=True
+        )
+
+        messages.success(request, "สินค้าถูกเพิ่มเรียบร้อย")
+        return redirect('add_product')  
+
     return render(request, 'admin/productlist.html', {
         'page_obj': page_obj,
         'user': user,
         'total_items': products.count(),
         'rental_items': products.filter(type="เช่ายืม").count(),
         'second_hand_items': products.filter(type="มือสอง").count(),
-        'selected_category': selected_category,  # ส่งค่าไป template
+        'selected_category': selected_category,
     })
 
 
@@ -774,8 +820,7 @@ def rental_detail(request, pk):
         try:
             pickup_date_obj = datetime.strptime(pickup_date, '%Y-%m-%d').date()
             current_date = now().date()
-            
-            # Store rental info in session
+
             request.session['rental_info'] = {
                 'product_id': product.id,
                 'rental_duration': rental_duration,
@@ -920,8 +965,6 @@ def shop_confirm(request, product_id):
     }
     return render(request, 'user/shop_confirm.html', context)
 
-
-
 def create_order(request):
     if request.method == 'POST':
         try:
@@ -976,5 +1019,13 @@ def create_order(request):
 
 #Exercise function
 def exercise_view(request):
-    exercises = Exercise.objects.all()  # ดึงข้อมูลท่าออกกำลังกายทั้งหมด
-    return render(request, 'exercise/chest.html', {'exercises': exercises})
+
+    selected_muscle = request.GET.get('muscle', 'หน้าอก')
+
+    exercises = Exercise.objects.filter(muscle=selected_muscle)
+
+    context = {
+        'exercises': exercises,
+        'selected_muscle': selected_muscle  
+    }
+    return render(request, 'exercise/Extramuscle.html', context)
