@@ -34,9 +34,9 @@ urlpatterns = [
     path('product/<int:pk>/',shop_detail, name='shop_detail'),
     path('shop/confirm/<int:product_id>/', shop_confirm, name='shop_confirm'),
     path('create-order/', create_order, name='create_order'),
-
     path('user_buy', user_buy_history, name='user_buy' ),
     path('user_rental', user_rental_history, name='user_rental' ),
+    path('cancel_rental/<str:rental_id>/',cancel_rental, name='cancel_rental'),
     path('report/', report_issue, name='report_issue'),
 
     path('contact/', contact, name='contact'),

@@ -321,6 +321,30 @@ def user_rental_history(request):
     return render(request, 'user/user_rental.html', context)
 
 
+def cancel_rental(request, rental_id):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
+    user_id = request.session['user_id']
+    try:
+        user = Users.objects.get(id=user_id)
+    except Users.DoesNotExist:
+        return redirect('login')
+
+    # ตรวจสอบการกรองด้วย order_code และ user_id และสถานะเป็น 'pending'
+    try:
+        rental = RentalRecord.objects.get(order_code=rental_id, user_id=user_id, status='pending')
+    except RentalRecord.DoesNotExist:
+        # ถ้าไม่พบการจองที่ตรงกับเงื่อนไข
+        messages.error(request, 'ไม่พบการจองที่ตรงกับคำขอ หรือสถานะไม่สามารถยกเลิกได้')
+        return redirect('user_rental')
+
+    # ลบข้อมูลการจองจากฐานข้อมูล
+    rental.delete()
+
+    messages.success(request, 'คุณได้ยกเลิกการจองเรียบร้อยแล้ว')
+    return redirect('user_rental')
+
 def user_buy_history(request):
     if 'user_id' not in request.session:
         return redirect('login')  
@@ -380,7 +404,7 @@ def report_issue(request):
             # ตรวจสอบว่าอุปกรณ์นี้มีการแจ้งปัญหาก่อนหน้านี้และยังคงอยู่ในสถานะ "กำลังดำเนินการ"
             existing_report = Report.objects.filter(rental_code=rental_record, status='in_progress').first()
             if existing_report:
-                messages.error(request, 'อุปกรณ์ชิ้นนี้ได้ถูกแจ้งปัญหากำลังดำเนินการอยู่แล้ว')
+                messages.error(request, 'อุปกรณ์ชิ้นนี้ได้ถูกแจ้งปัญหาแล้ว')
                 return redirect('report_issue')
 
             # ถ้าไม่มีการแจ้งปัญหาหรือสถานะเป็น completed ให้สร้างรายงานใหม่

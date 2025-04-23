@@ -37,7 +37,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    
 class buy_record(models.Model):
     order_code = models.CharField(max_length=8, primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

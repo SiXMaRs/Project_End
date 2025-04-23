@@ -52,6 +52,12 @@
                                 </div>
                                 <div class="text-right">
                                     <p class="text-black font-semibold">{{ rental.total_price|intcomma }} บาท</p>
+                                    {% if rental.status == 'pending' %}
+                                        <form method="POST" action="{% url 'cancel_rental' rental.order_code %}" class="inline-block">
+                                            {% csrf_token %}
+                                            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">ยกเลิกการจอง</button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -60,7 +66,7 @@
                     {% endfor %}
                 </div>
             
-                <!-- ✅ ปรับตำแหน่งปุ่มเลื่อนหน้า -->
+                <!-- Pagination -->
                 <div class="mt-4 flex justify-center">
                     <nav class="inline-flex">
                         {% if page_obj.has_previous %}
